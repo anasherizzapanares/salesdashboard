@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: #0e0f14;
+    min-height: 100vh;
+    color: #e2e4ed;
+  }
+
+  /* ── Tab Bar ─────────────────────────────────── */
+  .tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 32px 0;
+    border-bottom: 1px solid #ffffff0d;
+    background: #0e0f14;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .tab-bar-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffffff25;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-right: 16px;
+  }
+  .tab {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: #ffffff35;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+    border-radius: 6px 6px 0 0;
+  }
+  .tab:hover { color: #ffffff70; background: #ffffff05; }
+  .tab.active { color: #e8b86d; border-bottom-color: #e8b86d; background: #e8b86d08; }
+
+  /* ── Tab Panels ──────────────────────────────── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ══════════════════════════════════════════════
+     MRR TABLE STYLES
+  ══════════════════════════════════════════════ */
+  #mrr-panel {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+  #mrr-panel.active { display: flex; }
+
+  .mrr-card {
+    background: #1a1a2e;
+    border-radius: 16px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 860px;
+    box-shadow: 0 0 0 1px #ffffff0a, 0 24px 60px #00000060, 0 4px 12px #00000040;
+  }
+  .mrr-card-top {
+    padding: 16px 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #ffffff0d;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  }
+  .mrr-card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff40; margin-bottom: 4px; }
+  .mrr-card-heading { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+  .mrr-card-heading span { color: #e8b86d; }
+  .date-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #ffffff50; background: #ffffff08; border: 1px solid #ffffff10; padding: 5px 11px; border-radius: 20px; white-space: nowrap; }
+  .mrr-table { width: 100%; border-collapse: collapse; }
+  .mrr-table thead tr { background: #ffffff06; }
+  .mrr-table thead th { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #ffffff30; padding: 10px 16px; text-align: right; }
+  .mrr-table thead th:first-child { text-align: left; }
+  .mrr-table tbody tr { border-top: 1px solid #ffffff08; transition: background 0.15s; }
+  .mrr-table tbody tr:hover { background: #ffffff04; }
+  .mrr-table tbody td { padding: 14px 16px; text-align: right; }
+  .mrr-table tbody td:first-child { text-align: left; }
+  .seg-label { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+  .money { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 400; color: #ffffffb0; letter-spacing: -0.3px; }
+  .money.actual { color: #fff; font-weight: 500; }
+  .yoy { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6fd4a0; font-weight: 400; }
+  .ytd { display: inline-flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; padding: 5px 14px; border-radius: 6px; min-width: 70px; letter-spacing: 0.02em; }
+  .ytd-over { background: #22c55e18; color: #4ade80; border: 1px solid #22c55e30; }
+  .ytd-warn { background: #f59e0b18; color: #fbbf24; border: 1px solid #f59e0b30; }
+  .ytd-under { background: #ef444418; color: #f87171; border: 1px solid #ef444430; }
+  .actual-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .mini-bar { width: 80px; height: 3px; background: #ffffff10; border-radius: 99px; overflow: hidden; }
+  .mini-fill { height: 100%; border-radius: 99px; }
+  .mrr-footer { padding: 10px 20px; background: #ffffff04; border-top: 1px solid #ffffff08; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .footer-note { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: #ffffff25; letter-spacing: 0.06em; }
+  .footer-btns { display: flex; gap: 8px; }
+  .edit-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #e8b86d; background: #e8b86d15; border: 1px solid #e8b86d30; padding: 5px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+  .edit-btn:hover { background: #e8b86d25; }
+  .edit-btn.done { color: #4ade80; background: #4ade8015; border-color: #4ade8030; }
+  .config-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff35; background: transparent; border: 1px solid #ffffff12; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+  .config-btn:hover { color: #ffffff70; border-color: #ffffff25; }
+
+  /* ══════════════════════════════════════════════
+     FORECAST STYLES
+  ══════════════════════════════════════════════ */
+  #fc-panel { display: none; padding: 32px 24px; }
+  #fc-panel.active { display: block; }
+  .fc-page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .fc-page-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1px solid #ffffff0d; margin-bottom: 4px; }
+  .fc-page-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
+  .fc-page-title span { color: #e8b86d; }
+  .fc-header-right { display: flex; gap: 8px; align-items: center; }
+  .fc-date-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #ffffff45; background: #ffffff08; border: 1px solid #ffffff10; padding: 5px 12px; border-radius: 20px; }
+  .btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 6px 14px; border-radius: 6px; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-config { color: #ffffff35; background: transparent; border: 1px solid #ffffff12; }
+  .btn-config:hover { color: #ffffff70; border-color: #ffffff25; }
+  .btn-edit { color: #e8b86d; background: #e8b86d15; border: 1px solid #e8b86d30; }
+  .btn-edit:hover { background: #e8b86d25; }
+  .btn-edit.done { color: #4ade80; background: #4ade8015; border-color: #4ade8030; }
+  .panel { background: #13151f; border: 1px solid #ffffff0d; border-radius: 12px; overflow: hidden; }
+  .panel-header { padding: 11px 20px; border-bottom: 1px solid #ffffff0a; display: flex; align-items: center; gap: 8px; background: #ffffff04; }
+  .panel-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .panel-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff40; }
+  .panel-label span { color: #ffffff70; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #ffffff25; padding: 9px 20px; text-align: right; background: #ffffff03; border-bottom: 1px solid #ffffff08; }
+  thead th:first-child { text-align: left; width: 130px; }
+  tbody tr { border-bottom: 1px solid #ffffff07; transition: background 0.12s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #ffffff04; }
+  tbody td { padding: 13px 20px; text-align: right; font-size: 13px; }
+  tbody td:first-child { text-align: left; }
+  .row-seg { font-size: 12px; font-weight: 600; color: #ffffff60; letter-spacing: 0.04em; }
+  .row-seg.total { color: #ffffff90; font-size: 13px; }
+  .row-seg.forecast-label { color: #e8b86d; font-size: 12px; font-weight: 700; }
+  .num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ffffffa0; }
+  .num.bright { color: #fff; font-weight: 500; }
+  .num.gold { color: #e8b86d; font-weight: 500; }
+  .num.dim { color: #ffffff30; }
+  .num.green { color: #4ade80; }
+  .num.blue { color: #93c5fd; }
+  .num.purple { color: #c4b5fd; }
+  .num.amber { color: #fcd34d; }
+  .num.teal { color: #5eead4; }
+  .att-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .att-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; }
+  .att-bar { width: 70px; height: 3px; background: #ffffff10; border-radius: 99px; overflow: hidden; }
+  .att-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  .total-row td { background: #ffffff05; }
+  .impl-row { display: flex; border-top: 1px solid #ffffff08; }
+  .impl-cell { flex: 1; padding: 12px 20px; border-right: 1px solid #ffffff08; }
+  .impl-cell:last-child { border-right: none; }
+  .impl-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #ffffff30; margin-bottom: 5px; }
+  .impl-val { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; }
+  .case-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .case-cell { padding: 14px 20px; border-right: 1px solid #ffffff08; }
+  .case-cell:last-child { border-right: none; }
+  .case-title { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #ffffff25; margin-bottom: 10px; }
+  .case-row-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .case-seg { font-size: 11px; color: #ffffff45; }
+  .case-val { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ffffffa0; min-width: 90px; text-align: right; }
+  .case-total { border-top: 1px solid #ffffff0a; margin-top: 8px; padding-top: 8px; }
+
+  /* ── Shared Modal ────────────────────────────── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: #00000090; backdrop-filter: blur(6px); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #1a1d2e; border: 1px solid #ffffff15; border-radius: 14px; padding: 28px; width: 100%; max-width: 460px; box-shadow: 0 32px 80px #00000090; max-height: 85vh; overflow-y: auto; }
+  .modal-title { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin-bottom: 3px; }
+  .modal-sub { font-size: 11px; color: #ffffff30; font-family: 'IBM Plex Mono', monospace; margin-bottom: 20px; }
+  .cfg-section { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff25; margin: 18px 0 10px; border-top: 1px solid #ffffff08; padding-top: 14px; }
+  .cfg-section:first-of-type { margin-top: 0; border-top: none; padding-top: 0; }
+  .cfg-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .cfg-label { font-size: 12px; color: #ffffff60; width: 160px; flex-shrink: 0; }
+  .cfg-input { flex: 1; background: #ffffff08; border: 1px solid #ffffff12; border-radius: 6px; padding: 7px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #fff; outline: none; transition: border-color 0.15s; }
+  .cfg-input:focus { border-color: #e8b86d60; background: #ffffff0d; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 22px; justify-content: flex-end; }
+  .btn-cancel { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #ffffff35; background: transparent; border: 1px solid #ffffff15; padding: 7px 16px; border-radius: 6px; cursor: pointer; }
+  .btn-save { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #1a1a2e; background: #e8b86d; border: none; padding: 7px 18px; border-radius: 6px; cursor: pointer; }
+  .btn-save:hover { opacity: 0.85; }
+
+  [contenteditable="true"] { outline: none; border-radius: 3px; cursor: text; }
+  [contenteditable="true"]:focus { background: #ffffff10; box-shadow: 0 0 0 1px #e8b86d50; padding: 1px 4px; margin: -1px -4px; }
+
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <span class="tab-bar-title">Sales Ops</span>
+  <button class="tab active" onclick="switchTab('mrr')">📊 MRR Performance</button>
+  <button class="tab" onclick="switchTab('fc')">📈 Forecast Dashboard</button>
+</div>
+
+<!-- MRR Panel -->
+<div id="mrr-panel" class="tab-panel active" style="display:flex; align-items:center; justify-content:center; padding:32px 24px;">
+  <div class="mrr-card">
+    <div class="mrr-card-top">
+      <div>
+        <div class="mrr-card-title">Monthly Recurring Revenue</div>
+        <div class="mrr-card-heading">MRR <span>Performance</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="text-align:right;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#ffffff25;margin-bottom:3px;">Sales Attainment</div>
+          <div id="sales-att-badge" style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;letter-spacing:-0.5px;color:#fbbf24;">—</div>
+        </div>
+        <div class="date-chip" id="mrr-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Mar 18, 2025</div>
+      </div>
+    </div>
+    <table class="mrr-table">
+      <thead>
+        <tr>
+          <th>Segment</th><th>YTD Target</th><th>YTD Actual</th><th>YoY Growth</th><th>YTD Attainment</th><th>Weighted Pipeline</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="seg-label">ENT</span></td>
+          <td><span class="money" contenteditable="false" data-f="ent-target">₱1,620,000</span></td>
+          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="ent-actual">₱857,855</span><div class="mini-bar"><div class="mini-fill" style="width:53%;background:#fbbf24;"></div></div></div></td>
+          <td><span class="yoy" contenteditable="false" data-f="ent-yoy">+15%</span></td>
+          <td><span class="ytd ytd-warn" contenteditable="false" data-f="ent-ytd">53%</span></td>
+          <td><span class="money" contenteditable="false" data-f="ent-pipeline">₱0</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">FY</div></td>
+        </tr>
+        <tr>
+          <td><span class="seg-label">SME</span></td>
+          <td><span class="money" contenteditable="false" data-f="sme-target">₱1,620,000</span></td>
+          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="sme-actual">₱1,975,470</span><div class="mini-bar"><div class="mini-fill" style="width:100%;background:#4ade80;"></div></div></div></td>
+          <td><span class="yoy" contenteditable="false" data-f="sme-yoy">+7%</span></td>
+          <td><span class="ytd ytd-over" contenteditable="false" data-f="sme-ytd">122%</span></td>
+          <td><span class="money" contenteditable="false" data-f="sme-pipeline">₱0</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">CQ/CQ+1</div></td>
+        </tr>
+        <tr>
+          <td><span class="seg-label">U/S</span></td>
+          <td><span class="money" contenteditable="false" data-f="us-target">₱1,140,000</span></td>
+          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="us-actual">₱1,007,097</span><div class="mini-bar"><div class="mini-fill" style="width:88%;background:#f87171;"></div></div></div></td>
+          <td><span class="yoy" contenteditable="false" data-f="us-yoy">+6%</span></td>
+          <td><span class="ytd ytd-under" contenteditable="false" data-f="us-ytd">88%</span></td>
+          <td><span class="money" contenteditable="false" data-f="us-pipeline">₱0</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">CQ/CQ+1</div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="mrr-footer">
+      <span class="footer-note">SOURCE: HUBSPOT · UPDATED DAILY</span>
+      <div class="footer-btns">
+        <button class="config-btn" onclick="openMrrConfig()">⚙ Monthly Config</button>
+        <button class="edit-btn" id="mrrEditBtn" onclick="promptEdit('mrr')">✎ Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Forecast Panel -->
+<div id="fc-panel" class="tab-panel" style="display:none; padding:32px 24px;">
+  <div class="fc-page">
+    <div class="fc-page-header">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#ffffff25;margin-bottom:4px;">Sales Operations</div>
+        <div class="fc-page-title">Forecast <span>Dashboard</span></div>
+      </div>
+      <div class="fc-header-right">
+        <div class="fc-date-chip" id="fc-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Mar 12, 2025</div>
+        <button class="btn btn-config" onclick="openFcConfig()">⚙ Config</button>
+        <button class="btn btn-edit" id="fcEditBtn" onclick="promptEdit('fc')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- FORECAST -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-dot" style="background:#ffffff20;"></div><div class="panel-label"><span>Forecast</span> · MRR + FinTech MRR</div></div>
+      <table>
+        <thead><tr><th></th><th>MRR</th><th>FinTech MRR</th><th>Sales</th></tr></thead>
+        <tbody>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-mrr">₱1,600,000</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-fin">₱130,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fc-us-mrr">₱370,000</span></td><td><span class="num" contenteditable="false" data-f="fc-us-fin">₱120,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg forecast-label">March Forecast</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-mrr"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-fin"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-sales"></span></td></tr>
+          <tr><td></td><td colspan="2"></td><td><span class="num dim" style="font-size:10px;">Target: <span contenteditable="false" data-f="fc-target">₱2,600,000</span></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ACTUAL -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-dot" style="background:#4ade80;"></div><div class="panel-label"><span style="color:#4ade80;">Actual</span></div></div>
+      <table>
+        <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th><th>MRR Att.</th><th>E/F Att.</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="row-seg">N/B</span></td>
+            <td><span class="num" contenteditable="false" data-f="ac-nb-mrr">₱169,533</span></td>
+            <td><span class="num" contenteditable="false" data-f="ac-nb-ef">₱11,300</span></td>
+            <td><span class="num bright" contenteditable="false" data-f="ac-nb-sales"></span></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-nb-mrr-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-nb-mrr-att"></div></div></div></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-nb-ef-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-nb-ef-att"></div></div></div></td>
+          </tr>
+          <tr>
+            <td><span class="row-seg">U/S</span></td>
+            <td><span class="num" contenteditable="false" data-f="ac-us-mrr">₱45,050</span></td>
+            <td><span class="num" contenteditable="false" data-f="ac-us-ef">₱63,600</span></td>
+            <td><span class="num bright" contenteditable="false" data-f="ac-us-sales"></span></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-us-mrr-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-us-mrr-att"></div></div></div></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-us-ef-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-us-ef-att"></div></div></div></td>
+          </tr>
+          <tr class="total-row">
+            <td><span class="row-seg total">Total</span></td>
+            <td><span class="num green" contenteditable="false" data-f="ac-tot-mrr"></span></td>
+            <td><span class="num green" contenteditable="false" data-f="ac-tot-ef"></span></td>
+            <td><span class="num green" contenteditable="false" data-f="ac-tot-sales"></span></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-tot-mrr-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-tot-mrr-att"></div></div></div></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-tot-ef-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-tot-ef-att"></div></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="impl-row">
+        <div class="impl-cell">
+          <div class="impl-label">Implementation</div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span class="impl-val teal" contenteditable="false" data-f="impl-nb">₱393,000</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:#fff;" contenteditable="false" data-f="impl-att"></span>
+          </div>
+        </div>
+        <div class="impl-cell"><div class="impl-label">OTP · N/B</div><span class="impl-val purple" contenteditable="false" data-f="otp-nb">₱120,000</span></div>
+        <div class="impl-cell"><div class="impl-label">OTP · U/S</div><span class="impl-val purple" contenteditable="false" data-f="otp-us">₱6,500</span></div>
+      </div>
+    </div>
+
+    <!-- COMMIT -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-dot" style="background:#93c5fd;"></div><div class="panel-label"><span style="color:#93c5fd;">Commit</span> · MRR + E/F MRR</div></div>
+      <table>
+        <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th></tr></thead>
+        <tbody>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="cm-nb-mrr">₱551,720</span></td><td><span class="num dim" contenteditable="false" data-f="cm-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="cm-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="cm-us-mrr">₱83,750</span></td><td><span class="num" contenteditable="false" data-f="cm-us-ef">₱8,550</span></td><td><span class="num bright" contenteditable="false" data-f="cm-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-mrr"></span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-ef"></span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-sales"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FORECAST PIPELINE -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-dot" style="background:#c4b5fd;"></div><div class="panel-label"><span style="color:#c4b5fd;">Forecast Pipeline</span> · MRR + E/F MRR</div></div>
+      <table>
+        <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th></tr></thead>
+        <tbody>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fp-nb-mrr">₱1,120,000</span></td><td><span class="num dim" contenteditable="false" data-f="fp-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="fp-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fp-us-mrr">₱186,710</span></td><td><span class="num" contenteditable="false" data-f="fp-us-ef">₱45,300</span></td><td><span class="num bright" contenteditable="false" data-f="fp-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-mrr"></span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-ef"></span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-sales"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- STRONG UPSIDE -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-dot" style="background:#fcd34d;"></div><div class="panel-label"><span style="color:#fcd34d;">Strong Upside</span> · MRR + E/F MRR</div></div>
+      <table>
+        <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th></tr></thead>
+        <tbody>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="su-nb-mrr">₱1,180,000</span></td><td><span class="num dim" contenteditable="false" data-f="su-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="su-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="su-us-mrr">₱779,640</span></td><td><span class="num" contenteditable="false" data-f="su-us-ef">₱176,750</span></td><td><span class="num bright" contenteditable="false" data-f="su-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-mrr"></span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-ef"></span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-sales"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CASE SUMMARY -->
+    <div class="panel">
+      <div class="panel-header"><div class="panel-dot" style="background:#ffffff20;"></div><div class="panel-label"><span>Case Summary</span></div></div>
+      <div class="case-grid">
+        <div class="case-cell">
+          <div class="case-title" style="color:#f87171aa;">⬇ Worst Case · Actual + Commit</div>
+          <div class="case-row-item"><span class="case-seg">MRR</span><span class="case-val" contenteditable="false" data-f="wc-mrr"></span></div>
+          <div class="case-row-item"><span class="case-seg">E/F MRR</span><span class="case-val" contenteditable="false" data-f="wc-ef"></span></div>
+          <div class="case-row-item case-total"><span class="case-seg" style="color:#ffffff70;font-weight:700;">Sales</span><span class="case-val" style="color:#f87171;font-weight:600;" contenteditable="false" data-f="wc-sales"></span></div>
+        </div>
+        <div class="case-cell">
+          <div class="case-title" style="color:#4ade80aa;">⬆ Best Case · Actual + Commit + Forecast</div>
+          <div class="case-row-item"><span class="case-seg">MRR</span><span class="case-val" contenteditable="false" data-f="bc-mrr"></span></div>
+          <div class="case-row-item"><span class="case-seg">E/F MRR</span><span class="case-val" contenteditable="false" data-f="bc-ef"></span></div>
+          <div class="case-row-item case-total"><span class="case-seg" style="color:#ffffff70;font-weight:700;">Sales</span><span class="case-val" style="color:#4ade80;font-weight:600;" contenteditable="false" data-f="bc-sales"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MRR Config Modal -->
+<div class="modal-overlay" id="mrrConfigModal">
+  <div class="modal">
+    <div class="modal-title">MRR Monthly Configuration</div>
+    <div class="modal-sub">Update at the start of each month</div>
+    <div class="cfg-section">Prior Year Baselines (YoY Growth)</div>
+    <div class="cfg-row"><label class="cfg-label">ENT Prior Year</label><input class="cfg-input" id="cfg-ent-py" type="number" value="745404"></div>
+    <div class="cfg-row"><label class="cfg-label">SME Prior Year</label><input class="cfg-input" id="cfg-sme-py" type="number" value="1838270"></div>
+    <div class="cfg-row"><label class="cfg-label">U/S Prior Year</label><input class="cfg-input" id="cfg-us-py" type="number" value="953675"></div>
+    <div class="cfg-section">YTD Targets</div>
+    <div class="cfg-row"><label class="cfg-label">ENT YTD Target</label><input class="cfg-input" id="cfg-ent-target" type="number" value="1620000"></div>
+    <div class="cfg-row"><label class="cfg-label">SME YTD Target</label><input class="cfg-input" id="cfg-sme-target" type="number" value="1620000"></div>
+    <div class="cfg-row"><label class="cfg-label">U/S YTD Target</label><input class="cfg-input" id="cfg-us-target" type="number" value="1140000"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeMrrConfig()">Cancel</button>
+      <button class="btn-save" onclick="saveMrrConfig()">Save & Recalculate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Forecast Config Modal -->
+<div class="modal-overlay" id="fcConfigModal">
+  <div class="modal">
+    <div class="modal-title">Forecast Configuration</div>
+    <div class="modal-sub">Update at the start of each month</div>
+    <div class="cfg-section">Forecast · N/B</div>
+    <div class="cfg-row"><label class="cfg-label">N/B MRR</label><input class="cfg-input" id="cfg-fc-nb-mrr" type="number" value="1600000"></div>
+    <div class="cfg-row"><label class="cfg-label">N/B FinTech MRR</label><input class="cfg-input" id="cfg-fc-nb-fin" type="number" value="130000"></div>
+    <div class="cfg-section">Forecast · U/S</div>
+    <div class="cfg-row"><label class="cfg-label">U/S MRR</label><input class="cfg-input" id="cfg-fc-us-mrr" type="number" value="370000"></div>
+    <div class="cfg-row"><label class="cfg-label">U/S FinTech MRR</label><input class="cfg-input" id="cfg-fc-us-fin" type="number" value="120000"></div>
+    <div class="cfg-section">Targets</div>
+    <div class="cfg-row"><label class="cfg-label">Sales Target</label><input class="cfg-input" id="cfg-fc-target" type="number" value="2600000"></div>
+    <div class="cfg-row"><label class="cfg-label">Impl. Target</label><input class="cfg-input" id="cfg-impl-target" type="number" value="2600000"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeFcConfig()">Cancel</button>
+      <button class="btn-save" onclick="saveFcConfig()">Save & Recalculate</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Tab switching ─────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+    if (tab === 'mrr') {
+      document.querySelectorAll('.tab')[0].classList.add('active');
+      const p = document.getElementById('mrr-panel');
+      p.classList.add('active'); p.style.display = 'flex';
+    } else {
+      document.querySelectorAll('.tab')[1].classList.add('active');
+      const p = document.getElementById('fc-panel');
+      p.classList.add('active'); p.style.display = 'block';
+      recalcFc();
+    }
+    localStorage.setItem('active_tab', tab);
+  }
+
+  // ══════════════════════════════════════════════
+  // MRR TABLE LOGIC
+  // ══════════════════════════════════════════════
+  const mrrSegments = ['ent', 'sme', 'us'];
+  let mrrPriorYear = { ent: 745404, sme: 1838270, us: 953675 };
+
+  function parseNum(str) { return parseFloat(String(str).replace(/[₱,%]/g, '').replace(/,/g,'')) || 0; }
+  function fmt(n) { return n === 0 ? '₱0' : '₱' + Math.round(n).toLocaleString('en-PH'); }
+
+  function mQ(f) { return document.querySelector('[data-f="' + f + '"]'); }
+
+  function calcYoY(seg) {
+    const py = mrrPriorYear[seg]; if (!py) return;
+    const actual = parseNum(mQ(seg + '-actual').textContent);
+    const pct = Math.round(((actual - py) / py) * 100);
+    mQ(seg + '-yoy').textContent = (pct >= 0 ? '+' : '') + pct + '%';
+  }
+
+  function calcAttainment(seg) {
+    const target = parseNum(mQ(seg + '-target').textContent);
+    const actual = parseNum(mQ(seg + '-actual').textContent);
+    if (!target) return;
+    const pct = Math.round((actual / target) * 100);
+    const ytdEl = mQ(seg + '-ytd');
+    const barEl = ytdEl.closest('tr').querySelector('.mini-fill');
+    ytdEl.textContent = pct + '%';
+    ytdEl.className = 'ytd ' + (pct >= 100 ? 'ytd-over' : pct >= 70 ? 'ytd-warn' : 'ytd-under');
+    if (barEl) { barEl.style.width = Math.min(pct,100)+'%'; barEl.style.background = pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171'; }
+  }
+
+  function recalcMrr() {
+    mrrSegments.forEach(seg => { calcYoY(seg); calcAttainment(seg); });
+    const totalActual = mrrSegments.reduce((s,seg) => s + parseNum(mQ(seg+'-actual').textContent), 0);
+    const totalTarget = mrrSegments.reduce((s,seg) => s + parseNum(mQ(seg+'-target').textContent), 0);
+    const badge = document.getElementById('sales-att-badge');
+    if (badge && totalTarget) {
+      const pct = Math.round((totalActual / totalTarget) * 100);
+      badge.textContent = pct + '%';
+      badge.style.color = pct >= 100 ? '#4ade80' : pct >= 70 ? '#fbbf24' : '#f87171';
+    }
+  }
+
+  // MRR Config
+  function openMrrConfig() {
+    document.getElementById('cfg-ent-py').value = mrrPriorYear.ent;
+    document.getElementById('cfg-sme-py').value = mrrPriorYear.sme;
+    document.getElementById('cfg-us-py').value  = mrrPriorYear.us;
+    document.getElementById('cfg-ent-target').value = parseNum(mQ('ent-target').textContent);
+    document.getElementById('cfg-sme-target').value = parseNum(mQ('sme-target').textContent);
+    document.getElementById('cfg-us-target').value  = parseNum(mQ('us-target').textContent);
+    document.getElementById('mrrConfigModal').classList.add('open');
+  }
+  function closeMrrConfig() { document.getElementById('mrrConfigModal').classList.remove('open'); }
+  function saveMrrConfig() {
+    mrrPriorYear.ent = parseFloat(document.getElementById('cfg-ent-py').value) || mrrPriorYear.ent;
+    mrrPriorYear.sme = parseFloat(document.getElementById('cfg-sme-py').value) || mrrPriorYear.sme;
+    mrrPriorYear.us  = parseFloat(document.getElementById('cfg-us-py').value)  || mrrPriorYear.us;
+    mQ('ent-target').textContent = fmt(document.getElementById('cfg-ent-target').value);
+    mQ('sme-target').textContent = fmt(document.getElementById('cfg-sme-target').value);
+    mQ('us-target').textContent  = fmt(document.getElementById('cfg-us-target').value);
+    recalcMrr(); saveMrrState(); closeMrrConfig();
+  }
+  document.getElementById('mrrConfigModal').addEventListener('click', e => { if (e.target === document.getElementById('mrrConfigModal')) closeMrrConfig(); });
+
+  // MRR Edit
+  const MRR_LOCKED = new Set(['ent-yoy','sme-yoy','us-yoy','ent-ytd','sme-ytd','us-ytd']);
+  let mrrEditing = false;
+  function toggleMrrEdit() {
+    mrrEditing = !mrrEditing;
+    const btn = document.getElementById('mrrEditBtn');
+    document.getElementById('mrr-panel').querySelectorAll('[data-f]').forEach(el => {
+      if (!MRR_LOCKED.has(el.dataset.f)) el.setAttribute('contenteditable', mrrEditing ? 'true' : 'false');
+    });
+    btn.textContent = mrrEditing ? '✓ Done' : '✎ Edit';
+    btn.classList.toggle('done', mrrEditing);
+    if (!mrrEditing) { recalcMrr(); saveMrrState(); }
+  }
+
+  // MRR localStorage
+  const MRR_KEY = 'mrr_table_v2';
+  function saveMrrState() {
+    const state = {};
+    document.getElementById('mrr-panel').querySelectorAll('[data-f]').forEach(el => {
+      if (el.textContent.trim()) state[el.dataset.f] = el.textContent.trim();
+    });
+    state['__date__'] = document.getElementById('mrr-date-chip').textContent.trim();
+    state['__prior__'] = JSON.stringify(mrrPriorYear);
+    localStorage.setItem(MRR_KEY, JSON.stringify(state));
+  }
+  function loadMrrState() {
+    const raw = localStorage.getItem(MRR_KEY); if (!raw) return;
+    try {
+      const state = JSON.parse(raw);
+      Object.entries(state).forEach(([key, val]) => {
+        if (key === '__date__') { document.getElementById('mrr-date-chip').textContent = val; }
+        else if (key === '__prior__') { try { Object.assign(mrrPriorYear, JSON.parse(val)); } catch(e) {} }
+        else { const el = document.querySelector('[data-f="' + key + '"]'); if (el) el.textContent = val; }
+      });
+    } catch(e) {}
+  }
+
+  document.getElementById('mrr-date-chip').addEventListener('blur', saveMrrState);
+
+  // ══════════════════════════════════════════════
+  // FORECAST LOGIC
+  // ══════════════════════════════════════════════
+  let fcCfg = { fcTarget: 2600000, implTarget: 2600000 };
+
+  function fQ(f) { return document.getElementById('fc-panel').querySelector('[data-f="' + f + '"]'); }
+  function fBar(f) { return document.getElementById('fc-panel').querySelector('[data-bar="' + f + '"]'); }
+  function fGet(f) { return parseNum(fQ(f) ? fQ(f).textContent : 0); }
+  function fmtN(n) { return n===0?'₱0':'₱'+Math.round(n).toLocaleString('en-PH'); }
+
+  function setNum(f, val) { const el = fQ(f); if (el) el.textContent = fmtN(val); }
+  function setAtt(f, pct) {
+    const el = fQ(f); if (!el) return;
+    const b = fBar(f);
+    el.textContent = Math.round(pct) + '%';
+    el.style.color = pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171';
+    if (b) { b.style.width=Math.min(pct,100)+'%'; b.style.background=pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171'; }
+  }
+
+  function recalcFc() {
+    const fcNbMrr=fGet('fc-nb-mrr'),fcNbFin=fGet('fc-nb-fin'),fcUsMrr=fGet('fc-us-mrr'),fcUsFin=fGet('fc-us-fin');
+    const fcNbSales=fcNbMrr+fcNbFin,fcUsSales=fcUsMrr+fcUsFin,fcTotMrr=fcNbMrr+fcUsMrr,fcTotFin=fcNbFin+fcUsFin,fcTotSales=fcNbSales+fcUsSales;
+    setNum('fc-nb-sales',fcNbSales);setNum('fc-us-sales',fcUsSales);setNum('fc-tot-mrr',fcTotMrr);setNum('fc-tot-fin',fcTotFin);setNum('fc-tot-sales',fcTotSales);
+    const acNbMrr=fGet('ac-nb-mrr'),acNbEf=fGet('ac-nb-ef'),acUsMrr=fGet('ac-us-mrr'),acUsEf=fGet('ac-us-ef');
+    const acNbSales=acNbMrr+acNbEf,acUsSales=acUsMrr+acUsEf,acTotMrr=acNbMrr+acUsMrr,acTotEf=acNbEf+acUsEf,acTotSales=acNbSales+acUsSales;
+    setNum('ac-nb-sales',acNbSales);setNum('ac-us-sales',acUsSales);setNum('ac-tot-mrr',acTotMrr);setNum('ac-tot-ef',acTotEf);setNum('ac-tot-sales',acTotSales);
+    if(fcNbMrr)setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100);
+    if(fcNbFin)setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);
+    if(fcUsMrr)setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100);
+    if(fcUsFin)setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);
+    if(fcTotMrr)setAtt('ac-tot-mrr-att',acTotMrr/fcTotMrr*100);
+    if(fcTotFin)setAtt('ac-tot-ef-att',acTotEf/fcTotFin*100);
+    const implNb=fGet('impl-nb');
+    if(fcCfg.implTarget){const el=fQ('impl-att');if(el)el.textContent=Math.round(implNb/fcCfg.implTarget*100)+'% attainment';}
+    const cmNbMrr=fGet('cm-nb-mrr'),cmNbEf=fGet('cm-nb-ef'),cmUsMrr=fGet('cm-us-mrr'),cmUsEf=fGet('cm-us-ef');
+    setNum('cm-nb-sales',cmNbMrr+cmNbEf);setNum('cm-us-sales',cmUsMrr+cmUsEf);setNum('cm-tot-mrr',cmNbMrr+cmUsMrr);setNum('cm-tot-ef',cmNbEf+cmUsEf);setNum('cm-tot-sales',cmNbMrr+cmNbEf+cmUsMrr+cmUsEf);
+    const fpNbMrr=fGet('fp-nb-mrr'),fpNbEf=fGet('fp-nb-ef'),fpUsMrr=fGet('fp-us-mrr'),fpUsEf=fGet('fp-us-ef');
+    setNum('fp-nb-sales',fpNbMrr+fpNbEf);setNum('fp-us-sales',fpUsMrr+fpUsEf);setNum('fp-tot-mrr',fpNbMrr+fpUsMrr);setNum('fp-tot-ef',fpNbEf+fpUsEf);setNum('fp-tot-sales',fpNbMrr+fpNbEf+fpUsMrr+fpUsEf);
+    const suNbMrr=fGet('su-nb-mrr'),suNbEf=fGet('su-nb-ef'),suUsMrr=fGet('su-us-mrr'),suUsEf=fGet('su-us-ef');
+    setNum('su-nb-sales',suNbMrr+suNbEf);setNum('su-us-sales',suUsMrr+suUsEf);setNum('su-tot-mrr',suNbMrr+suUsMrr);setNum('su-tot-ef',suNbEf+suUsEf);setNum('su-tot-sales',suNbMrr+suNbEf+suUsMrr+suUsEf);
+    const wcMrr=acTotMrr+cmNbMrr+cmUsMrr,wcEf=acTotEf+cmNbEf+cmUsEf,wcSales=acTotSales+cmNbMrr+cmNbEf+cmUsMrr+cmUsEf;
+    setNum('wc-mrr',wcMrr);setNum('wc-ef',wcEf);setNum('wc-sales',wcSales);
+    const bcMrr=wcMrr+fpNbMrr+fpUsMrr,bcEf=wcEf+fpNbEf+fpUsEf,bcSales=wcSales+fpNbMrr+fpNbEf+fpUsMrr+fpUsEf;
+    setNum('bc-mrr',bcMrr);setNum('bc-ef',bcEf);setNum('bc-sales',bcSales);
+  }
+
+  // Forecast Config
+  function openFcConfig() {
+    document.getElementById('cfg-fc-nb-mrr').value = parseNum(fQ('fc-nb-mrr').textContent);
+    document.getElementById('cfg-fc-nb-fin').value = parseNum(fQ('fc-nb-fin').textContent);
+    document.getElementById('cfg-fc-us-mrr').value = parseNum(fQ('fc-us-mrr').textContent);
+    document.getElementById('cfg-fc-us-fin').value = parseNum(fQ('fc-us-fin').textContent);
+    document.getElementById('cfg-fc-target').value = fcCfg.fcTarget;
+    document.getElementById('cfg-impl-target').value = fcCfg.implTarget;
+    document.getElementById('fcConfigModal').classList.add('open');
+  }
+  function closeFcConfig() { document.getElementById('fcConfigModal').classList.remove('open'); }
+  function saveFcConfig() {
+    fQ('fc-nb-mrr').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-nb-mrr').value)||0);
+    fQ('fc-nb-fin').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-nb-fin').value)||0);
+    fQ('fc-us-mrr').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-us-mrr').value)||0);
+    fQ('fc-us-fin').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-us-fin').value)||0);
+    fcCfg.fcTarget = parseFloat(document.getElementById('cfg-fc-target').value)||fcCfg.fcTarget;
+    fcCfg.implTarget = parseFloat(document.getElementById('cfg-impl-target').value)||fcCfg.implTarget;
+    fQ('fc-target').textContent = fmtN(fcCfg.fcTarget);
+    recalcFc(); saveFcState(); closeFcConfig();
+  }
+  document.getElementById('fcConfigModal').addEventListener('click', e => { if(e.target===document.getElementById('fcConfigModal')) closeFcConfig(); });
+
+  // Forecast Edit
+  const FC_LOCKED = new Set(['fc-nb-sales','fc-us-sales','fc-tot-mrr','fc-tot-fin','fc-tot-sales','ac-nb-sales','ac-us-sales','ac-tot-mrr','ac-tot-ef','ac-tot-sales','cm-nb-sales','cm-us-sales','cm-tot-mrr','cm-tot-ef','cm-tot-sales','fp-nb-sales','fp-us-sales','fp-tot-mrr','fp-tot-ef','fp-tot-sales','su-nb-sales','su-us-sales','su-tot-mrr','su-tot-ef','su-tot-sales','wc-mrr','wc-ef','wc-sales','bc-mrr','bc-ef','bc-sales','fc-target','impl-att']);
+  let fcEditing = false;
+  const FC_EDITABLE = ['fc-nb-mrr','fc-nb-fin','fc-us-mrr','fc-us-fin',
+    'ac-nb-mrr','ac-nb-ef','ac-us-mrr','ac-us-ef',
+    'impl-nb','otp-nb','otp-us',
+    'cm-nb-mrr','cm-nb-ef','cm-us-mrr','cm-us-ef',
+    'fp-nb-mrr','fp-nb-ef','fp-us-mrr','fp-us-ef',
+    'su-nb-mrr','su-nb-ef','su-us-mrr','su-us-ef'];
+
+  function toggleFcEdit() {
+    fcEditing = !fcEditing;
+    const btn = document.getElementById('fcEditBtn');
+    const fcPanelEl = document.getElementById('fc-panel');
+    FC_EDITABLE.forEach(f => {
+      const el = fcPanelEl.querySelector('[data-f="' + f + '"]');
+      if (el) el.setAttribute('contenteditable', fcEditing ? 'true' : 'false');
+    });
+    btn.textContent = fcEditing ? '✓ Done' : '✎ Edit';
+    btn.classList.toggle('done', fcEditing);
+    if (!fcEditing) { recalcFc(); saveFcState(); }
+  }
+
+  // Forecast localStorage
+  const FC_KEY = 'forecast_dashboard_v2';
+  function saveFcState() {
+    const state = {};
+    document.getElementById('fc-panel').querySelectorAll('[data-f]').forEach(el => {
+      if (el.textContent.trim()) state[el.dataset.f] = el.textContent.trim();
+    });
+    state['__date__'] = document.getElementById('fc-date-chip').textContent.trim();
+    state['__cfg__'] = JSON.stringify(fcCfg);
+    localStorage.setItem(FC_KEY, JSON.stringify(state));
+  }
+  function loadFcState() {
+    const raw = localStorage.getItem(FC_KEY); if (!raw) return;
+    try {
+      const state = JSON.parse(raw);
+      Object.entries(state).forEach(([key, val]) => {
+        if (key==='__date__') { document.getElementById('fc-date-chip').textContent=val; }
+        else if (key==='__cfg__') { try{Object.assign(fcCfg,JSON.parse(val));}catch(e){} }
+        else { const el=document.querySelector('[data-f="'+key+'"]'); if(el) el.textContent=val; }
+      });
+    } catch(e) {}
+  }
+  document.getElementById('fc-date-chip').addEventListener('blur', saveFcState);
+
+  // ── Shared blur handler ───────────────────────────────────
+  document.addEventListener('blur', e => {
+    const f = e.target.dataset && e.target.dataset.f;
+    if (!f) return;
+    if (document.getElementById('mrr-panel').contains(e.target)) { recalcMrr(); saveMrrState(); }
+    else if (document.getElementById('fc-panel').contains(e.target)) { recalcFc(); saveFcState(); }
+  }, true);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+  });
+
+
+  // ── Password protection ───────────────────────────────────
+  const CORRECT_PW = 'sprout2026';
+  let pendingEditTab = null;
+
+  function promptEdit(tab) {
+    // If already editing, just toggle off
+    if (tab === 'mrr' && mrrEditing) { toggleMrrEdit(); return; }
+    if (tab === 'fc' && fcEditing) { toggleFcEdit(); return; }
+    pendingEditTab = tab;
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwError').style.display = 'none';
+    document.getElementById('pwModal').classList.add('open');
+    setTimeout(() => document.getElementById('pwInput').focus(), 100);
+  }
+
+  function submitPw() {
+    const val = document.getElementById('pwInput').value;
+    if (val === CORRECT_PW) {
+      const tab = pendingEditTab;
+      closePwModal();
+      setTimeout(() => {
+        if (tab === 'mrr') toggleMrrEdit();
+        else if (tab === 'fc') toggleFcEdit();
+      }, 50);
+    } else {
+      document.getElementById('pwError').style.display = 'block';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  }
+
+  function closePwModal() {
+    document.getElementById('pwModal').classList.remove('open');
+    pendingEditTab = null;
+  }
+
+  document.getElementById('pwModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('pwModal')) closePwModal();
+  });
+
+  // ── Init ─────────────────────────────────────────────────
+  const savedTab = localStorage.getItem('active_tab') || 'mrr';
+  loadMrrState();
+  loadFcState();
+  recalcMrr();
+  recalcFc();
+  switchTab(savedTab);
+</script>
+
+<!-- Password Modal -->
+<div class="modal-overlay" id="pwModal">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-title">Enter Password</div>
+    <div class="modal-sub">This dashboard is edit-protected</div>
+    <div class="cfg-row" style="margin-top:4px;">
+      <input class="cfg-input" id="pwInput" type="password" placeholder="Password" style="width:100%;" onkeydown="if(event.key==='Enter') submitPw()">
+    </div>
+    <div id="pwError" style="font-size:11px;color:#f87171;margin-top:6px;display:none;">Incorrect password</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closePwModal()">Cancel</button>
+      <button class="btn-save" onclick="submitPw()">Unlock</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
