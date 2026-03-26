@@ -205,8 +205,8 @@
 <!-- Tab Bar -->
 <div class="tab-bar">
   <span class="tab-bar-title">Sales Ops</span>
-  <button class="tab active" onclick="switchTab('mrr')">📊 MRR Performance</button>
-  <button class="tab" onclick="switchTab('fc')">📈 Forecast Dashboard</button>
+  <button class="tab active" data-action="switchTab-mrr">📊 MRR Performance</button>
+  <button class="tab" data-action="switchTab-fc">📈 Forecast Dashboard</button>
 </div>
 
 <!-- MRR Panel -->
@@ -261,8 +261,8 @@
     <div class="mrr-footer">
       <span class="footer-note">SOURCE: HUBSPOT · UPDATED DAILY</span>
       <div class="footer-btns">
-        <button class="config-btn" onclick="openMrrConfig()">⚙ Monthly Config</button>
-        <button class="edit-btn" id="mrrEditBtn" onclick="promptEdit('mrr')">✎ Edit</button>
+        <button class="config-btn" data-action="openMrrConfig">⚙ Monthly Config</button>
+        <button class="edit-btn" id="mrrEditBtn" data-action="promptEdit-mrr">✎ Edit</button>
       </div>
     </div>
   </div>
@@ -278,8 +278,8 @@
       </div>
       <div class="fc-header-right">
         <div class="fc-date-chip" id="fc-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Mar 12, 2025</div>
-        <button class="btn btn-config" onclick="openFcConfig()">⚙ Config</button>
-        <button class="btn btn-edit" id="fcEditBtn" onclick="promptEdit('fc')">✎ Edit</button>
+        <button class="btn btn-config" data-action="openFcConfig">⚙ Config</button>
+        <button class="btn btn-edit" id="fcEditBtn" data-action="promptEdit-fc">✎ Edit</button>
       </div>
     </div>
 
@@ -416,8 +416,8 @@
     <div class="cfg-row"><label class="cfg-label">SME YTD Target</label><input class="cfg-input" id="cfg-sme-target" type="number" value="1620000"></div>
     <div class="cfg-row"><label class="cfg-label">U/S YTD Target</label><input class="cfg-input" id="cfg-us-target" type="number" value="1140000"></div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeMrrConfig()">Cancel</button>
-      <button class="btn-save" onclick="saveMrrConfig()">Save & Recalculate</button>
+      <button class="btn-cancel" data-action="closeMrrConfig">Cancel</button>
+      <button class="btn-save" data-action="saveMrrConfig">Save & Recalculate</button>
     </div>
   </div>
 </div>
@@ -437,310 +437,11 @@
     <div class="cfg-row"><label class="cfg-label">Sales Target</label><input class="cfg-input" id="cfg-fc-target" type="number" value="2600000"></div>
     <div class="cfg-row"><label class="cfg-label">Impl. Target</label><input class="cfg-input" id="cfg-impl-target" type="number" value="2600000"></div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeFcConfig()">Cancel</button>
-      <button class="btn-save" onclick="saveFcConfig()">Save & Recalculate</button>
+      <button class="btn-cancel" data-action="closeFcConfig">Cancel</button>
+      <button class="btn-save" data-action="saveFcConfig">Save & Recalculate</button>
     </div>
   </div>
 </div>
-
-<script>
-  // ── Tab switching ─────────────────────────────────────────
-  function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-    if (tab === 'mrr') {
-      document.querySelectorAll('.tab')[0].classList.add('active');
-      const p = document.getElementById('mrr-panel');
-      p.classList.add('active'); p.style.display = 'flex';
-    } else {
-      document.querySelectorAll('.tab')[1].classList.add('active');
-      const p = document.getElementById('fc-panel');
-      p.classList.add('active'); p.style.display = 'block';
-      recalcFc();
-    }
-    localStorage.setItem('active_tab', tab);
-  }
-
-  // ══════════════════════════════════════════════
-  // MRR TABLE LOGIC
-  // ══════════════════════════════════════════════
-  const mrrSegments = ['ent', 'sme', 'us'];
-  let mrrPriorYear = { ent: 745404, sme: 1838270, us: 953675 };
-
-  function parseNum(str) { return parseFloat(String(str).replace(/[₱,%]/g, '').replace(/,/g,'')) || 0; }
-  function fmt(n) { return n === 0 ? '₱0' : '₱' + Math.round(n).toLocaleString('en-PH'); }
-
-  function mQ(f) { return document.querySelector('[data-f="' + f + '"]'); }
-
-  function calcYoY(seg) {
-    const py = mrrPriorYear[seg]; if (!py) return;
-    const actual = parseNum(mQ(seg + '-actual').textContent);
-    const pct = Math.round(((actual - py) / py) * 100);
-    mQ(seg + '-yoy').textContent = (pct >= 0 ? '+' : '') + pct + '%';
-  }
-
-  function calcAttainment(seg) {
-    const target = parseNum(mQ(seg + '-target').textContent);
-    const actual = parseNum(mQ(seg + '-actual').textContent);
-    if (!target) return;
-    const pct = Math.round((actual / target) * 100);
-    const ytdEl = mQ(seg + '-ytd');
-    const barEl = ytdEl.closest('tr').querySelector('.mini-fill');
-    ytdEl.textContent = pct + '%';
-    ytdEl.className = 'ytd ' + (pct >= 100 ? 'ytd-over' : pct >= 70 ? 'ytd-warn' : 'ytd-under');
-    if (barEl) { barEl.style.width = Math.min(pct,100)+'%'; barEl.style.background = pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171'; }
-  }
-
-  function recalcMrr() {
-    mrrSegments.forEach(seg => { calcYoY(seg); calcAttainment(seg); });
-    const totalActual = mrrSegments.reduce((s,seg) => s + parseNum(mQ(seg+'-actual').textContent), 0);
-    const totalTarget = mrrSegments.reduce((s,seg) => s + parseNum(mQ(seg+'-target').textContent), 0);
-    const badge = document.getElementById('sales-att-badge');
-    if (badge && totalTarget) {
-      const pct = Math.round((totalActual / totalTarget) * 100);
-      badge.textContent = pct + '%';
-      badge.style.color = pct >= 100 ? '#4ade80' : pct >= 70 ? '#fbbf24' : '#f87171';
-    }
-  }
-
-  // MRR Config
-  function openMrrConfig() {
-    document.getElementById('cfg-ent-py').value = mrrPriorYear.ent;
-    document.getElementById('cfg-sme-py').value = mrrPriorYear.sme;
-    document.getElementById('cfg-us-py').value  = mrrPriorYear.us;
-    document.getElementById('cfg-ent-target').value = parseNum(mQ('ent-target').textContent);
-    document.getElementById('cfg-sme-target').value = parseNum(mQ('sme-target').textContent);
-    document.getElementById('cfg-us-target').value  = parseNum(mQ('us-target').textContent);
-    document.getElementById('mrrConfigModal').classList.add('open');
-  }
-  function closeMrrConfig() { document.getElementById('mrrConfigModal').classList.remove('open'); }
-  function saveMrrConfig() {
-    mrrPriorYear.ent = parseFloat(document.getElementById('cfg-ent-py').value) || mrrPriorYear.ent;
-    mrrPriorYear.sme = parseFloat(document.getElementById('cfg-sme-py').value) || mrrPriorYear.sme;
-    mrrPriorYear.us  = parseFloat(document.getElementById('cfg-us-py').value)  || mrrPriorYear.us;
-    mQ('ent-target').textContent = fmt(document.getElementById('cfg-ent-target').value);
-    mQ('sme-target').textContent = fmt(document.getElementById('cfg-sme-target').value);
-    mQ('us-target').textContent  = fmt(document.getElementById('cfg-us-target').value);
-    recalcMrr(); saveMrrState(); closeMrrConfig();
-  }
-  document.getElementById('mrrConfigModal').addEventListener('click', e => { if (e.target === document.getElementById('mrrConfigModal')) closeMrrConfig(); });
-
-  // MRR Edit
-  const MRR_LOCKED = new Set(['ent-yoy','sme-yoy','us-yoy','ent-ytd','sme-ytd','us-ytd']);
-  let mrrEditing = false;
-  function toggleMrrEdit() {
-    mrrEditing = !mrrEditing;
-    const btn = document.getElementById('mrrEditBtn');
-    document.getElementById('mrr-panel').querySelectorAll('[data-f]').forEach(el => {
-      if (!MRR_LOCKED.has(el.dataset.f)) el.setAttribute('contenteditable', mrrEditing ? 'true' : 'false');
-    });
-    btn.textContent = mrrEditing ? '✓ Done' : '✎ Edit';
-    btn.classList.toggle('done', mrrEditing);
-    if (!mrrEditing) { recalcMrr(); saveMrrState(); }
-  }
-
-  // MRR localStorage
-  const MRR_KEY = 'mrr_table_v2';
-  function saveMrrState() {
-    const state = {};
-    document.getElementById('mrr-panel').querySelectorAll('[data-f]').forEach(el => {
-      if (el.textContent.trim()) state[el.dataset.f] = el.textContent.trim();
-    });
-    state['__date__'] = document.getElementById('mrr-date-chip').textContent.trim();
-    state['__prior__'] = JSON.stringify(mrrPriorYear);
-    localStorage.setItem(MRR_KEY, JSON.stringify(state));
-  }
-  function loadMrrState() {
-    const raw = localStorage.getItem(MRR_KEY); if (!raw) return;
-    try {
-      const state = JSON.parse(raw);
-      Object.entries(state).forEach(([key, val]) => {
-        if (key === '__date__') { document.getElementById('mrr-date-chip').textContent = val; }
-        else if (key === '__prior__') { try { Object.assign(mrrPriorYear, JSON.parse(val)); } catch(e) {} }
-        else { const el = document.querySelector('[data-f="' + key + '"]'); if (el) el.textContent = val; }
-      });
-    } catch(e) {}
-  }
-
-  document.getElementById('mrr-date-chip').addEventListener('blur', saveMrrState);
-
-  // ══════════════════════════════════════════════
-  // FORECAST LOGIC
-  // ══════════════════════════════════════════════
-  let fcCfg = { fcTarget: 2600000, implTarget: 2600000 };
-
-  function fQ(f) { return document.getElementById('fc-panel').querySelector('[data-f="' + f + '"]'); }
-  function fBar(f) { return document.getElementById('fc-panel').querySelector('[data-bar="' + f + '"]'); }
-  function fGet(f) { return parseNum(fQ(f) ? fQ(f).textContent : 0); }
-  function fmtN(n) { return n===0?'₱0':'₱'+Math.round(n).toLocaleString('en-PH'); }
-
-  function setNum(f, val) { const el = fQ(f); if (el) el.textContent = fmtN(val); }
-  function setAtt(f, pct) {
-    const el = fQ(f); if (!el) return;
-    const b = fBar(f);
-    el.textContent = Math.round(pct) + '%';
-    el.style.color = pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171';
-    if (b) { b.style.width=Math.min(pct,100)+'%'; b.style.background=pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171'; }
-  }
-
-  function recalcFc() {
-    const fcNbMrr=fGet('fc-nb-mrr'),fcNbFin=fGet('fc-nb-fin'),fcUsMrr=fGet('fc-us-mrr'),fcUsFin=fGet('fc-us-fin');
-    const fcNbSales=fcNbMrr+fcNbFin,fcUsSales=fcUsMrr+fcUsFin,fcTotMrr=fcNbMrr+fcUsMrr,fcTotFin=fcNbFin+fcUsFin,fcTotSales=fcNbSales+fcUsSales;
-    setNum('fc-nb-sales',fcNbSales);setNum('fc-us-sales',fcUsSales);setNum('fc-tot-mrr',fcTotMrr);setNum('fc-tot-fin',fcTotFin);setNum('fc-tot-sales',fcTotSales);
-    const acNbMrr=fGet('ac-nb-mrr'),acNbEf=fGet('ac-nb-ef'),acUsMrr=fGet('ac-us-mrr'),acUsEf=fGet('ac-us-ef');
-    const acNbSales=acNbMrr+acNbEf,acUsSales=acUsMrr+acUsEf,acTotMrr=acNbMrr+acUsMrr,acTotEf=acNbEf+acUsEf,acTotSales=acNbSales+acUsSales;
-    setNum('ac-nb-sales',acNbSales);setNum('ac-us-sales',acUsSales);setNum('ac-tot-mrr',acTotMrr);setNum('ac-tot-ef',acTotEf);setNum('ac-tot-sales',acTotSales);
-    if(fcNbMrr)setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100);
-    if(fcNbFin)setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);
-    if(fcUsMrr)setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100);
-    if(fcUsFin)setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);
-    if(fcTotMrr)setAtt('ac-tot-mrr-att',acTotMrr/fcTotMrr*100);
-    if(fcTotFin)setAtt('ac-tot-ef-att',acTotEf/fcTotFin*100);
-    const implNb=fGet('impl-nb');
-    if(fcCfg.implTarget){const el=fQ('impl-att');if(el)el.textContent=Math.round(implNb/fcCfg.implTarget*100)+'% attainment';}
-    const cmNbMrr=fGet('cm-nb-mrr'),cmNbEf=fGet('cm-nb-ef'),cmUsMrr=fGet('cm-us-mrr'),cmUsEf=fGet('cm-us-ef');
-    setNum('cm-nb-sales',cmNbMrr+cmNbEf);setNum('cm-us-sales',cmUsMrr+cmUsEf);setNum('cm-tot-mrr',cmNbMrr+cmUsMrr);setNum('cm-tot-ef',cmNbEf+cmUsEf);setNum('cm-tot-sales',cmNbMrr+cmNbEf+cmUsMrr+cmUsEf);
-    const fpNbMrr=fGet('fp-nb-mrr'),fpNbEf=fGet('fp-nb-ef'),fpUsMrr=fGet('fp-us-mrr'),fpUsEf=fGet('fp-us-ef');
-    setNum('fp-nb-sales',fpNbMrr+fpNbEf);setNum('fp-us-sales',fpUsMrr+fpUsEf);setNum('fp-tot-mrr',fpNbMrr+fpUsMrr);setNum('fp-tot-ef',fpNbEf+fpUsEf);setNum('fp-tot-sales',fpNbMrr+fpNbEf+fpUsMrr+fpUsEf);
-    const suNbMrr=fGet('su-nb-mrr'),suNbEf=fGet('su-nb-ef'),suUsMrr=fGet('su-us-mrr'),suUsEf=fGet('su-us-ef');
-    setNum('su-nb-sales',suNbMrr+suNbEf);setNum('su-us-sales',suUsMrr+suUsEf);setNum('su-tot-mrr',suNbMrr+suUsMrr);setNum('su-tot-ef',suNbEf+suUsEf);setNum('su-tot-sales',suNbMrr+suNbEf+suUsMrr+suUsEf);
-    const wcMrr=acTotMrr+cmNbMrr+cmUsMrr,wcEf=acTotEf+cmNbEf+cmUsEf,wcSales=acTotSales+cmNbMrr+cmNbEf+cmUsMrr+cmUsEf;
-    setNum('wc-mrr',wcMrr);setNum('wc-ef',wcEf);setNum('wc-sales',wcSales);
-    const bcMrr=wcMrr+fpNbMrr+fpUsMrr,bcEf=wcEf+fpNbEf+fpUsEf,bcSales=wcSales+fpNbMrr+fpNbEf+fpUsMrr+fpUsEf;
-    setNum('bc-mrr',bcMrr);setNum('bc-ef',bcEf);setNum('bc-sales',bcSales);
-  }
-
-  // Forecast Config
-  function openFcConfig() {
-    document.getElementById('cfg-fc-nb-mrr').value = parseNum(fQ('fc-nb-mrr').textContent);
-    document.getElementById('cfg-fc-nb-fin').value = parseNum(fQ('fc-nb-fin').textContent);
-    document.getElementById('cfg-fc-us-mrr').value = parseNum(fQ('fc-us-mrr').textContent);
-    document.getElementById('cfg-fc-us-fin').value = parseNum(fQ('fc-us-fin').textContent);
-    document.getElementById('cfg-fc-target').value = fcCfg.fcTarget;
-    document.getElementById('cfg-impl-target').value = fcCfg.implTarget;
-    document.getElementById('fcConfigModal').classList.add('open');
-  }
-  function closeFcConfig() { document.getElementById('fcConfigModal').classList.remove('open'); }
-  function saveFcConfig() {
-    fQ('fc-nb-mrr').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-nb-mrr').value)||0);
-    fQ('fc-nb-fin').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-nb-fin').value)||0);
-    fQ('fc-us-mrr').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-us-mrr').value)||0);
-    fQ('fc-us-fin').textContent = fmtN(parseFloat(document.getElementById('cfg-fc-us-fin').value)||0);
-    fcCfg.fcTarget = parseFloat(document.getElementById('cfg-fc-target').value)||fcCfg.fcTarget;
-    fcCfg.implTarget = parseFloat(document.getElementById('cfg-impl-target').value)||fcCfg.implTarget;
-    fQ('fc-target').textContent = fmtN(fcCfg.fcTarget);
-    recalcFc(); saveFcState(); closeFcConfig();
-  }
-  document.getElementById('fcConfigModal').addEventListener('click', e => { if(e.target===document.getElementById('fcConfigModal')) closeFcConfig(); });
-
-  // Forecast Edit
-  const FC_LOCKED = new Set(['fc-nb-sales','fc-us-sales','fc-tot-mrr','fc-tot-fin','fc-tot-sales','ac-nb-sales','ac-us-sales','ac-tot-mrr','ac-tot-ef','ac-tot-sales','cm-nb-sales','cm-us-sales','cm-tot-mrr','cm-tot-ef','cm-tot-sales','fp-nb-sales','fp-us-sales','fp-tot-mrr','fp-tot-ef','fp-tot-sales','su-nb-sales','su-us-sales','su-tot-mrr','su-tot-ef','su-tot-sales','wc-mrr','wc-ef','wc-sales','bc-mrr','bc-ef','bc-sales','fc-target','impl-att']);
-  let fcEditing = false;
-  const FC_EDITABLE = ['fc-nb-mrr','fc-nb-fin','fc-us-mrr','fc-us-fin',
-    'ac-nb-mrr','ac-nb-ef','ac-us-mrr','ac-us-ef',
-    'impl-nb','otp-nb','otp-us',
-    'cm-nb-mrr','cm-nb-ef','cm-us-mrr','cm-us-ef',
-    'fp-nb-mrr','fp-nb-ef','fp-us-mrr','fp-us-ef',
-    'su-nb-mrr','su-nb-ef','su-us-mrr','su-us-ef'];
-
-  function toggleFcEdit() {
-    fcEditing = !fcEditing;
-    const btn = document.getElementById('fcEditBtn');
-    const fcPanelEl = document.getElementById('fc-panel');
-    FC_EDITABLE.forEach(f => {
-      const el = fcPanelEl.querySelector('[data-f="' + f + '"]');
-      if (el) el.setAttribute('contenteditable', fcEditing ? 'true' : 'false');
-    });
-    btn.textContent = fcEditing ? '✓ Done' : '✎ Edit';
-    btn.classList.toggle('done', fcEditing);
-    if (!fcEditing) { recalcFc(); saveFcState(); }
-  }
-
-  // Forecast localStorage
-  const FC_KEY = 'forecast_dashboard_v2';
-  function saveFcState() {
-    const state = {};
-    document.getElementById('fc-panel').querySelectorAll('[data-f]').forEach(el => {
-      if (el.textContent.trim()) state[el.dataset.f] = el.textContent.trim();
-    });
-    state['__date__'] = document.getElementById('fc-date-chip').textContent.trim();
-    state['__cfg__'] = JSON.stringify(fcCfg);
-    localStorage.setItem(FC_KEY, JSON.stringify(state));
-  }
-  function loadFcState() {
-    const raw = localStorage.getItem(FC_KEY); if (!raw) return;
-    try {
-      const state = JSON.parse(raw);
-      Object.entries(state).forEach(([key, val]) => {
-        if (key==='__date__') { document.getElementById('fc-date-chip').textContent=val; }
-        else if (key==='__cfg__') { try{Object.assign(fcCfg,JSON.parse(val));}catch(e){} }
-        else { const el=document.querySelector('[data-f="'+key+'"]'); if(el) el.textContent=val; }
-      });
-    } catch(e) {}
-  }
-  document.getElementById('fc-date-chip').addEventListener('blur', saveFcState);
-
-  // ── Shared blur handler ───────────────────────────────────
-  document.addEventListener('blur', e => {
-    const f = e.target.dataset && e.target.dataset.f;
-    if (!f) return;
-    if (document.getElementById('mrr-panel').contains(e.target)) { recalcMrr(); saveMrrState(); }
-    else if (document.getElementById('fc-panel').contains(e.target)) { recalcFc(); saveFcState(); }
-  }, true);
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
-  });
-
-
-  // ── Password protection ───────────────────────────────────
-  const CORRECT_PW = 'sprout2026';
-  let pendingEditTab = null;
-
-  function promptEdit(tab) {
-    // If already editing, just toggle off
-    if (tab === 'mrr' && mrrEditing) { toggleMrrEdit(); return; }
-    if (tab === 'fc' && fcEditing) { toggleFcEdit(); return; }
-    pendingEditTab = tab;
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwError').style.display = 'none';
-    document.getElementById('pwModal').classList.add('open');
-    setTimeout(() => document.getElementById('pwInput').focus(), 100);
-  }
-
-  function submitPw() {
-    const val = document.getElementById('pwInput').value;
-    if (val === CORRECT_PW) {
-      const tab = pendingEditTab;
-      closePwModal();
-      setTimeout(() => {
-        if (tab === 'mrr') toggleMrrEdit();
-        else if (tab === 'fc') toggleFcEdit();
-      }, 50);
-    } else {
-      document.getElementById('pwError').style.display = 'block';
-      document.getElementById('pwInput').value = '';
-      document.getElementById('pwInput').focus();
-    }
-  }
-
-  function closePwModal() {
-    document.getElementById('pwModal').classList.remove('open');
-    pendingEditTab = null;
-  }
-
-  document.getElementById('pwModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('pwModal')) closePwModal();
-  });
-
-  // ── Init ─────────────────────────────────────────────────
-  const savedTab = localStorage.getItem('active_tab') || 'mrr';
-  loadMrrState();
-  loadFcState();
-  recalcMrr();
-  recalcFc();
-  switchTab(savedTab);
-</script>
 
 <!-- Password Modal -->
 <div class="modal-overlay" id="pwModal">
@@ -748,7 +449,7 @@
     <div class="modal-title">Enter Password</div>
     <div class="modal-sub">This dashboard is edit-protected</div>
     <div class="cfg-row" style="margin-top:4px;">
-      <input class="cfg-input" id="pwInput" type="password" placeholder="Password" style="width:100%;" onkeydown="if(event.key==='Enter') submitPw()">
+      <input class="cfg-input" id="pwInput" type="password" placeholder="Password" style="width:100%;">
     </div>
     <div id="pwError" style="font-size:11px;color:#f87171;margin-top:6px;display:none;">Incorrect password</div>
     <div class="modal-actions">
@@ -757,5 +458,353 @@
     </div>
   </div>
 </div>
+
+<!-- Firebase CDN (compat mode - works with regular scripts) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  // ── Firebase ──────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyByBAMrf7AeRQySiHngqx_fM6JPkAavMoI",
+    authDomain: "sales-dashboard-9ce67.firebaseapp.com",
+    databaseURL: "https://sales-dashboard-9ce67-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "sales-dashboard-9ce67",
+    storageBucket: "sales-dashboard-9ce67.firebasestorage.app",
+    messagingSenderId: "971613588473",
+    appId: "1:971613588473:web:4737e1f80c687d4e1e4b28"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function fbSave(key, data) {
+    db.ref(key).set(data).catch(e => console.error('Save error:', e));
+  }
+  function fbListen(key, cb) {
+    db.ref(key).on('value', snap => { if (snap.val()) cb(snap.val()); });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  function $(f) { return document.querySelector('[data-f="' + f + '"]'); }
+  function $b(f) { return document.querySelector('[data-bar="' + f + '"]'); }
+  function $id(id) { return document.getElementById(id); }
+
+  function parseN(str) {
+    return parseFloat(String(str || 0).replace(/[₱,%]/g,'').replace(/,/g,'')) || 0;
+  }
+  function fmt(n) {
+    return n === 0 ? '₱0' : '₱' + Math.round(n).toLocaleString('en-PH');
+  }
+  function setAtt(f, pct) {
+    var el = $(f); if (!el) return;
+    var b = $b(f);
+    el.textContent = Math.round(pct) + '%';
+    el.style.color = pct >= 100 ? '#4ade80' : pct >= 50 ? '#fcd34d' : '#f87171';
+    if (b) { b.style.width = Math.min(pct,100)+'%'; b.style.background = pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171'; }
+  }
+  function getN(f) { return parseN($(f) ? $(f).textContent : 0); }
+  function setN(f, v) { var el=$(f); if(el) el.textContent=fmt(v); }
+
+  // ── Tab switching ─────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    ['mrr-panel','fc-panel'].forEach(function(id){
+      var p = $id(id);
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+    if (tab === 'mrr') {
+      document.querySelectorAll('.tab')[0].classList.add('active');
+      $id('mrr-panel').classList.add('active');
+      $id('mrr-panel').style.display = 'flex';
+    } else {
+      document.querySelectorAll('.tab')[1].classList.add('active');
+      $id('fc-panel').classList.add('active');
+      $id('fc-panel').style.display = 'block';
+      recalcFc();
+    }
+    localStorage.setItem('active_tab', tab);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // MRR TABLE
+  // ══════════════════════════════════════════════════════════
+  var mrrPriorYear = { ent: 745404, sme: 1838270, us: 953675 };
+
+  function recalcMrr() {
+    ['ent','sme','us'].forEach(function(seg) {
+      var py = mrrPriorYear[seg];
+      var actual = parseN($(seg+'-actual').textContent);
+      var target = parseN($(seg+'-target').textContent);
+      if (py) {
+        var yoy = Math.round(((actual - py) / py) * 100);
+        $(seg+'-yoy').textContent = (yoy >= 0 ? '+' : '') + yoy + '%';
+      }
+      if (target) {
+        var pct = Math.round((actual / target) * 100);
+        var ytdEl = $(seg+'-ytd');
+        var barEl = ytdEl.closest('tr').querySelector('.mini-fill');
+        ytdEl.textContent = pct + '%';
+        ytdEl.className = 'ytd ' + (pct>=100?'ytd-over':pct>=70?'ytd-warn':'ytd-under');
+        if (barEl) { barEl.style.width=Math.min(pct,100)+'%'; barEl.style.background=pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171'; }
+      }
+    });
+    var tActual = ['ent','sme','us'].reduce(function(s,seg){ return s+parseN($(seg+'-actual').textContent); },0);
+    var tTarget = ['ent','sme','us'].reduce(function(s,seg){ return s+parseN($(seg+'-target').textContent); },0);
+    var badge = $id('sales-att-badge');
+    if (badge && tTarget) {
+      var pct = Math.round((tActual/tTarget)*100);
+      badge.textContent = pct + '%';
+      badge.style.color = pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171';
+    }
+  }
+
+  var MRR_EDITABLE = ['ent-target','ent-actual','sme-target','sme-actual','us-target','us-actual','ent-pipeline','sme-pipeline','us-pipeline'];
+
+  function setMrrEditable(on) {
+    MRR_EDITABLE.forEach(function(f) {
+      var el = $id('mrr-panel').querySelector('[data-f="'+f+'"]');
+      if (el) {
+        el.contentEditable = on ? 'true' : 'false';
+        el.style.cursor = on ? 'text' : '';
+        el.style.borderBottom = on ? '1px dashed #e8b86d60' : '';
+      }
+    });
+  }
+
+  function getMrrState() {
+    var s = { __prior__: JSON.stringify(mrrPriorYear), __date__: $id('mrr-date-chip').textContent.trim() };
+    $id('mrr-panel').querySelectorAll('[data-f]').forEach(function(el){
+      if(el.textContent.trim()) s[el.dataset.f] = el.textContent.trim();
+    });
+    return s;
+  }
+
+  function applyMrrState(s) {
+    if (!s) return;
+    Object.keys(s).forEach(function(k) {
+      var v = s[k];
+      if (k==='__date__') $id('mrr-date-chip').textContent = v;
+      else if (k==='__prior__') { try{ Object.assign(mrrPriorYear,JSON.parse(v)); }catch(e){} }
+      else { var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
+    });
+    recalcMrr();
+  }
+
+  function saveMrr() {
+    var s = getMrrState();
+    localStorage.setItem('mrr_v3', JSON.stringify(s));
+    fbSave('mrr', s);
+  }
+
+  function openMrrConfig() {
+    $id('cfg-ent-py').value = mrrPriorYear.ent;
+    $id('cfg-sme-py').value = mrrPriorYear.sme;
+    $id('cfg-us-py').value  = mrrPriorYear.us;
+    $id('cfg-ent-target').value = parseN($('ent-target').textContent);
+    $id('cfg-sme-target').value = parseN($('sme-target').textContent);
+    $id('cfg-us-target').value  = parseN($('us-target').textContent);
+    $id('mrrConfigModal').classList.add('open');
+  }
+  function closeMrrConfig() { $id('mrrConfigModal').classList.remove('open'); }
+  function saveMrrConfig() {
+    mrrPriorYear.ent = parseFloat($id('cfg-ent-py').value)||mrrPriorYear.ent;
+    mrrPriorYear.sme = parseFloat($id('cfg-sme-py').value)||mrrPriorYear.sme;
+    mrrPriorYear.us  = parseFloat($id('cfg-us-py').value) ||mrrPriorYear.us;
+    $('ent-target').textContent = fmt($id('cfg-ent-target').value);
+    $('sme-target').textContent = fmt($id('cfg-sme-target').value);
+    $('us-target').textContent  = fmt($id('cfg-us-target').value);
+    recalcMrr(); saveMrr(); closeMrrConfig();
+  }
+  $id('mrrConfigModal').addEventListener('click', function(e){ if(e.target===$id('mrrConfigModal')) closeMrrConfig(); });
+
+  var mrrEditing = false;
+  function toggleMrrEdit() {
+    mrrEditing = !mrrEditing;
+    setMrrEditable(mrrEditing);
+    var btn = $id('mrrEditBtn');
+    btn.textContent = mrrEditing ? '✓ Done' : '✎ Edit';
+    btn.classList.toggle('done', mrrEditing);
+    if (!mrrEditing) { recalcMrr(); saveMrr(); }
+  }
+  $id('mrr-date-chip').addEventListener('blur', saveMrr);
+
+  // ══════════════════════════════════════════════════════════
+  // FORECAST DASHBOARD
+  // ══════════════════════════════════════════════════════════
+  var fcCfg = { fcTarget: 2600000, implTarget: 2600000 };
+
+  function recalcFc() {
+    var fcNbMrr=getN('fc-nb-mrr'),fcNbFin=getN('fc-nb-fin'),fcUsMrr=getN('fc-us-mrr'),fcUsFin=getN('fc-us-fin');
+    setN('fc-nb-sales',fcNbMrr+fcNbFin); setN('fc-us-sales',fcUsMrr+fcUsFin);
+    setN('fc-tot-mrr',fcNbMrr+fcUsMrr); setN('fc-tot-fin',fcNbFin+fcUsFin);
+    setN('fc-tot-sales',fcNbMrr+fcNbFin+fcUsMrr+fcUsFin);
+
+    var acNbMrr=getN('ac-nb-mrr'),acNbEf=getN('ac-nb-ef'),acUsMrr=getN('ac-us-mrr'),acUsEf=getN('ac-us-ef');
+    var acTotMrr=acNbMrr+acUsMrr, acTotEf=acNbEf+acUsEf;
+    setN('ac-nb-sales',acNbMrr+acNbEf); setN('ac-us-sales',acUsMrr+acUsEf);
+    setN('ac-tot-mrr',acTotMrr); setN('ac-tot-ef',acTotEf); setN('ac-tot-sales',acNbMrr+acNbEf+acUsMrr+acUsEf);
+
+    if(fcNbMrr) setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100);
+    if(fcNbFin) setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);
+    if(fcUsMrr) setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100);
+    if(fcUsFin) setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);
+    if(fcNbMrr+fcUsMrr) setAtt('ac-tot-mrr-att',acTotMrr/(fcNbMrr+fcUsMrr)*100);
+    if(fcNbFin+fcUsFin) setAtt('ac-tot-ef-att',acTotEf/(fcNbFin+fcUsFin)*100);
+
+    var implNb=getN('impl-nb');
+    if(fcCfg.implTarget){ var ia=$('impl-att'); if(ia) ia.textContent=Math.round(implNb/fcCfg.implTarget*100)+'% attainment'; }
+
+    var cmNbMrr=getN('cm-nb-mrr'),cmNbEf=getN('cm-nb-ef'),cmUsMrr=getN('cm-us-mrr'),cmUsEf=getN('cm-us-ef');
+    setN('cm-nb-sales',cmNbMrr+cmNbEf); setN('cm-us-sales',cmUsMrr+cmUsEf);
+    setN('cm-tot-mrr',cmNbMrr+cmUsMrr); setN('cm-tot-ef',cmNbEf+cmUsEf); setN('cm-tot-sales',cmNbMrr+cmNbEf+cmUsMrr+cmUsEf);
+
+    var fpNbMrr=getN('fp-nb-mrr'),fpNbEf=getN('fp-nb-ef'),fpUsMrr=getN('fp-us-mrr'),fpUsEf=getN('fp-us-ef');
+    setN('fp-nb-sales',fpNbMrr+fpNbEf); setN('fp-us-sales',fpUsMrr+fpUsEf);
+    setN('fp-tot-mrr',fpNbMrr+fpUsMrr); setN('fp-tot-ef',fpNbEf+fpUsEf); setN('fp-tot-sales',fpNbMrr+fpNbEf+fpUsMrr+fpUsEf);
+
+    var suNbMrr=getN('su-nb-mrr'),suNbEf=getN('su-nb-ef'),suUsMrr=getN('su-us-mrr'),suUsEf=getN('su-us-ef');
+    setN('su-nb-sales',suNbMrr+suNbEf); setN('su-us-sales',suUsMrr+suUsEf);
+    setN('su-tot-mrr',suNbMrr+suUsMrr); setN('su-tot-ef',suNbEf+suUsEf); setN('su-tot-sales',suNbMrr+suNbEf+suUsMrr+suUsEf);
+
+    var acTotSales=acNbMrr+acNbEf+acUsMrr+acUsEf;
+    var cmTotSales=cmNbMrr+cmNbEf+cmUsMrr+cmUsEf;
+    var fpTotSales=fpNbMrr+fpNbEf+fpUsMrr+fpUsEf;
+    setN('wc-mrr',acTotMrr+cmNbMrr+cmUsMrr);
+    setN('wc-ef',acTotEf+cmNbEf+cmUsEf);
+    setN('wc-sales',acTotSales+cmTotSales);
+    setN('bc-mrr',acTotMrr+cmNbMrr+cmUsMrr+fpNbMrr+fpUsMrr);
+    setN('bc-ef',acTotEf+cmNbEf+cmUsEf+fpNbEf+fpUsEf);
+    setN('bc-sales',acTotSales+cmTotSales+fpTotSales);
+  }
+
+  var FC_EDITABLE = ['fc-nb-mrr','fc-nb-fin','fc-us-mrr','fc-us-fin',
+    'ac-nb-mrr','ac-nb-ef','ac-us-mrr','ac-us-ef',
+    'impl-nb','otp-nb','otp-us',
+    'cm-nb-mrr','cm-nb-ef','cm-us-mrr','cm-us-ef',
+    'fp-nb-mrr','fp-nb-ef','fp-us-mrr','fp-us-ef',
+    'su-nb-mrr','su-nb-ef','su-us-mrr','su-us-ef'];
+
+  function setFcEditable(on) {
+    FC_EDITABLE.forEach(function(f) {
+      var el = $id('fc-panel').querySelector('[data-f="'+f+'"]');
+      if (el) {
+        el.contentEditable = on ? 'true' : 'false';
+        el.style.cursor = on ? 'text' : '';
+        el.style.borderBottom = on ? '1px dashed #e8b86d60' : '';
+      }
+    });
+  }
+
+  function getFcState() {
+    var s = { __cfg__: JSON.stringify(fcCfg), __date__: $id('fc-date-chip').textContent.trim() };
+    $id('fc-panel').querySelectorAll('[data-f]').forEach(function(el){
+      if(el.textContent.trim()) s[el.dataset.f]=el.textContent.trim();
+    });
+    return s;
+  }
+
+  function applyFcState(s) {
+    if (!s) return;
+    Object.keys(s).forEach(function(k) {
+      var v = s[k];
+      if (k==='__date__') $id('fc-date-chip').textContent=v;
+      else if (k==='__cfg__') { try{ Object.assign(fcCfg,JSON.parse(v)); }catch(e){} }
+      else { var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
+    });
+    recalcFc();
+  }
+
+  function saveFc() {
+    var s = getFcState();
+    localStorage.setItem('fc_v3', JSON.stringify(s));
+    fbSave('forecast', s);
+  }
+
+  function openFcConfig() {
+    $id('cfg-fc-nb-mrr').value = parseN($('fc-nb-mrr').textContent);
+    $id('cfg-fc-nb-fin').value = parseN($('fc-nb-fin').textContent);
+    $id('cfg-fc-us-mrr').value = parseN($('fc-us-mrr').textContent);
+    $id('cfg-fc-us-fin').value = parseN($('fc-us-fin').textContent);
+    $id('cfg-fc-target').value = fcCfg.fcTarget;
+    $id('cfg-impl-target').value = fcCfg.implTarget;
+    $id('fcConfigModal').classList.add('open');
+  }
+  function closeFcConfig() { $id('fcConfigModal').classList.remove('open'); }
+  function saveFcConfig() {
+    $('fc-nb-mrr').textContent=fmt(parseFloat($id('cfg-fc-nb-mrr').value)||0);
+    $('fc-nb-fin').textContent=fmt(parseFloat($id('cfg-fc-nb-fin').value)||0);
+    $('fc-us-mrr').textContent=fmt(parseFloat($id('cfg-fc-us-mrr').value)||0);
+    $('fc-us-fin').textContent=fmt(parseFloat($id('cfg-fc-us-fin').value)||0);
+    fcCfg.fcTarget=parseFloat($id('cfg-fc-target').value)||fcCfg.fcTarget;
+    fcCfg.implTarget=parseFloat($id('cfg-impl-target').value)||fcCfg.implTarget;
+    $('fc-target').textContent=fmt(fcCfg.fcTarget);
+    recalcFc(); saveFc(); closeFcConfig();
+  }
+  $id('fcConfigModal').addEventListener('click', function(e){ if(e.target===$id('fcConfigModal')) closeFcConfig(); });
+  $id('fc-date-chip').addEventListener('blur', saveFc);
+
+  var fcEditing = false;
+  function toggleFcEdit() {
+    fcEditing = !fcEditing;
+    setFcEditable(fcEditing);
+    var btn = $id('fcEditBtn');
+    btn.textContent = fcEditing ? '✓ Done' : '✎ Edit';
+    btn.classList.toggle('done', fcEditing);
+    if (!fcEditing) { recalcFc(); saveFc(); }
+  }
+
+  // ── Password ──────────────────────────────────────────────
+  var CORRECT_PW = 'sprout2026';
+  var pendingEditTab = null;
+
+  function promptEdit(tab) {
+    if (tab==='mrr' && mrrEditing) { toggleMrrEdit(); return; }
+    if (tab==='fc'  && fcEditing)  { toggleFcEdit();  return; }
+    pendingEditTab = tab;
+    $id('pwInput').value = '';
+    $id('pwError').style.display = 'none';
+    $id('pwModal').classList.add('open');
+    setTimeout(function(){ $id('pwInput').focus(); }, 100);
+  }
+  function submitPw() {
+    if ($id('pwInput').value === CORRECT_PW) {
+      var tab = pendingEditTab;
+      $id('pwModal').classList.remove('open');
+      pendingEditTab = null;
+      setTimeout(function(){ if(tab==='mrr') toggleMrrEdit(); else toggleFcEdit(); }, 80);
+    } else {
+      $id('pwError').style.display = 'block';
+      $id('pwInput').value = '';
+      $id('pwInput').focus();
+    }
+  }
+  function closePwModal() { $id('pwModal').classList.remove('open'); pendingEditTab=null; }
+  $id('pwModal').addEventListener('click', function(e){ if(e.target===$id('pwModal')) closePwModal(); });
+  $id('pwInput').addEventListener('keydown', function(e){ if(e.key==='Enter') submitPw(); });
+
+  // ── Blur / Enter handlers ─────────────────────────────────
+  document.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
+  document.addEventListener('blur', function(e) {
+    if (!e.target.dataset || !e.target.dataset.f) return;
+    if ($id('mrr-panel').contains(e.target)) { recalcMrr(); saveMrr(); }
+    else if ($id('fc-panel').contains(e.target)) { recalcFc(); saveFc(); }
+  }, true);
+
+  // ── Init ─────────────────────────────────────────────────
+  // Load localStorage first for instant display
+  var mrrLocal = localStorage.getItem('mrr_v3');
+  if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); } catch(e){} }
+  var fcLocal = localStorage.getItem('fc_v3');
+  if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); } catch(e){} }
+
+  recalcMrr();
+  recalcFc();
+  switchTab(localStorage.getItem('active_tab') || 'mrr');
+
+  // Firebase live sync
+  fbListen('mrr', function(s){ applyMrrState(s); localStorage.setItem('mrr_v3',JSON.stringify(s)); });
+  fbListen('forecast', function(s){ applyFcState(s); localStorage.setItem('fc_v3',JSON.stringify(s)); });
+</script>
 </body>
 </html>
