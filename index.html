@@ -791,6 +791,25 @@
     else if ($id('fc-panel').contains(e.target)) { recalcFc(); saveFc(); }
   }, true);
 
+  // ── Event delegation ─────────────────────────────────────
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var a = el.dataset.action;
+    if      (a === 'switchTab-mrr')  switchTab('mrr');
+    else if (a === 'switchTab-fc')   switchTab('fc');
+    else if (a === 'openMrrConfig')  openMrrConfig();
+    else if (a === 'closeMrrConfig') closeMrrConfig();
+    else if (a === 'saveMrrConfig')  saveMrrConfig();
+    else if (a === 'promptEdit-mrr') promptEdit('mrr');
+    else if (a === 'openFcConfig')   openFcConfig();
+    else if (a === 'closeFcConfig')  closeFcConfig();
+    else if (a === 'saveFcConfig')   saveFcConfig();
+    else if (a === 'promptEdit-fc')  promptEdit('fc');
+    else if (a === 'submitPw')       submitPw();
+    else if (a === 'closePwModal')   closePwModal();
+  });
+
   // ── Init ─────────────────────────────────────────────────
   // Load localStorage first for instant display
   var mrrLocal = localStorage.getItem('mrr_v3');
