@@ -198,9 +198,26 @@
   [contenteditable="true"]:focus { background: #ffffff10; box-shadow: 0 0 0 1px #e8b86d50; padding: 1px 4px; margin: -1px -4px; }
 
   @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+  .loading-overlay {
+    position: fixed; inset: 0; background: #0e0f14;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; transition: opacity 0.3s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loading-spinner {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    color: #ffffff30; letter-spacing: 0.1em;
+  }
+  .loading-spinner span { color: #e8b86d; }
 </style>
 </head>
 <body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">Loading <span>Sales Dashboard</span>...</div>
+</div>
 
 <!-- Tab Bar -->
 <div class="tab-bar">
@@ -811,19 +828,45 @@
   });
 
   // ── Init ─────────────────────────────────────────────────
-  // Load localStorage first for instant display
-  var mrrLocal = localStorage.getItem('mrr_v3');
-  if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); } catch(e){} }
-  var fcLocal = localStorage.getItem('fc_v3');
-  if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); } catch(e){} }
+  var mrrLoaded = false, fcLoaded = false;
+
+  function hideLoader() {
+    if (mrrLoaded && fcLoaded) {
+      var overlay = document.getElementById('loadingOverlay');
+      overlay.classList.add('hidden');
+      setTimeout(function(){ overlay.style.display='none'; }, 350);
+    }
+  }
+
+  // Firebase live sync - this is the source of truth
+  fbListen('mrr', function(s){
+    applyMrrState(s);
+    localStorage.setItem('mrr_v3', JSON.stringify(s));
+    if (!mrrLoaded) { mrrLoaded = true; hideLoader(); }
+  });
+  fbListen('forecast', function(s){
+    applyFcState(s);
+    localStorage.setItem('fc_v3', JSON.stringify(s));
+    if (!fcLoaded) { fcLoaded = true; hideLoader(); }
+  });
+
+  // Fallback: if Firebase takes too long (>3s), show localStorage or defaults
+  setTimeout(function() {
+    if (!mrrLoaded) {
+      var mrrLocal = localStorage.getItem('mrr_v3');
+      if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); } catch(e){} }
+      mrrLoaded = true; hideLoader();
+    }
+    if (!fcLoaded) {
+      var fcLocal = localStorage.getItem('fc_v3');
+      if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); } catch(e){} }
+      fcLoaded = true; hideLoader();
+    }
+  }, 3000);
 
   recalcMrr();
   recalcFc();
   switchTab(localStorage.getItem('active_tab') || 'mrr');
-
-  // Firebase live sync
-  fbListen('mrr', function(s){ applyMrrState(s); localStorage.setItem('mrr_v3',JSON.stringify(s)); });
-  fbListen('forecast', function(s){ applyFcState(s); localStorage.setItem('fc_v3',JSON.stringify(s)); });
 </script>
 </body>
 </html>
