@@ -210,6 +210,72 @@
     color: #ffffff30; letter-spacing: 0.1em;
   }
   .loading-spinner span { color: #e8b86d; }
+
+  /* ── Mobile Responsive ───────────────────────────────── */
+  @media (max-width: 768px) {
+    body { padding: 0; }
+
+    .tab-bar {
+      padding: 10px 12px 0;
+      gap: 2px;
+      flex-wrap: wrap;
+    }
+    .tab-bar-title { display: none; }
+    .tab { font-size: 11px; padding: 8px 12px; }
+
+    /* MRR Panel */
+    #mrr-panel { padding: 12px; align-items: stretch; }
+    .mrr-card { max-width: 100%; border-radius: 10px; }
+    .mrr-card-top { padding: 12px 14px 10px; flex-wrap: wrap; gap: 8px; }
+    .mrr-card-heading { font-size: 16px; }
+
+    .mrr-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .mrr-table thead th { font-size: 9px; padding: 8px 10px; white-space: nowrap; }
+    .mrr-table tbody td { padding: 10px 10px; font-size: 12px; white-space: nowrap; }
+    .money { font-size: 12px; }
+    .seg-label { font-size: 13px; }
+    .mini-bar { width: 50px; }
+    .ytd { font-size: 11px; padding: 3px 8px; min-width: 50px; }
+    .mrr-footer { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+    .footer-btns { width: 100%; justify-content: flex-end; }
+
+    /* Forecast Panel */
+    #fc-panel { padding: 12px; }
+    .fc-page { gap: 10px; }
+    .fc-page-header { flex-wrap: wrap; gap: 8px; }
+    .fc-page-title { font-size: 15px; }
+    .fc-header-right { width: 100%; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+    .fc-date-chip { font-size: 10px; padding: 4px 8px; }
+
+    .panel { border-radius: 8px; }
+    .panel-header { padding: 8px 12px; }
+    .panel-label { font-size: 9px; }
+
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    thead th { font-size: 9px; padding: 7px 10px; white-space: nowrap; }
+    tbody td { padding: 10px 10px; white-space: nowrap; }
+    .num { font-size: 11px; }
+    .row-seg { font-size: 11px; }
+    .att-bar { width: 40px; }
+
+    .impl-row { flex-wrap: wrap; }
+    .impl-cell { min-width: 50%; border-bottom: 1px solid #ffffff08; }
+    .impl-val { font-size: 12px; }
+
+    .case-grid { grid-template-columns: 1fr; }
+    .case-cell { border-right: none; border-bottom: 1px solid #ffffff08; }
+    .case-cell:last-child { border-bottom: none; }
+
+    /* Modal */
+    .modal { margin: 16px; padding: 20px; max-height: 90vh; }
+    .modal-title { font-size: 12px; }
+    .cfg-label { width: 110px; font-size: 11px; }
+    .cfg-input { font-size: 11px; padding: 6px 8px; }
+
+    /* Sales attainment badge */
+    #sales-att-badge { font-size: 16px; }
+  }
+
 </style>
 </head>
 <body>
