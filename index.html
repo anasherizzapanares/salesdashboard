@@ -224,6 +224,10 @@
   <span class="tab-bar-title">Sales Ops</span>
   <button class="tab active" data-action="switchTab-mrr">📊 MRR Performance</button>
   <button class="tab" data-action="switchTab-fc">📈 Forecast Dashboard</button>
+  <div style="margin-left:auto; padding-bottom:6px; display:flex; align-items:center; gap:10px;">
+    <span id="syncStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#ffffff25;letter-spacing:0.06em;"></span>
+    <button data-action="pushToFirebase" style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:none;background:#e8b86d15;color:#e8b86d;border:1px solid #e8b86d30;">☁ Sync Now</button>
+  </div>
 </div>
 
 <!-- MRR Panel -->
@@ -495,10 +499,18 @@
   const db = firebase.database();
 
   function fbSave(key, data) {
-    db.ref(key).set(data).catch(e => console.error('Save error:', e));
+    db.ref(key).set(data).then(function(){
+      var status = document.getElementById('syncStatus');
+      if (status) { status.textContent = '✓ Saved'; status.style.color = '#4ade80'; setTimeout(function(){ status.textContent=''; }, 2000); }
+    }).catch(function(e){ console.error('Save error:', e); });
   }
   function fbListen(key, cb) {
-    db.ref(key).on('value', snap => { if (snap.val()) cb(snap.val()); });
+    // .once() guarantees a single fetch even on flaky connections
+    db.ref(key).once('value').then(function(snap) {
+      if (snap.val()) cb(snap.val());
+    }).catch(function(e){ console.error('Firebase fetch error:', e); });
+    // .on() keeps it live for subsequent updates
+    db.ref(key).on('value', function(snap) { if (snap.val()) cb(snap.val()); });
   }
 
   // ── Helpers ───────────────────────────────────────────────
@@ -825,7 +837,31 @@
     else if (a === 'promptEdit-fc')  promptEdit('fc');
     else if (a === 'submitPw')       submitPw();
     else if (a === 'closePwModal')   closePwModal();
+    else if (a === 'pushToFirebase') pushToFirebase();
   });
+
+  // ── Manual sync ──────────────────────────────────────────
+  function pushToFirebase() {
+    var status = document.getElementById('syncStatus');
+    status.textContent = 'Syncing...';
+    status.style.color = '#fbbf24';
+    var mrrState = getMrrState();
+    var fcState  = getFcState();
+    Promise.all([
+      db.ref('mrr').set(mrrState),
+      db.ref('forecast').set(fcState)
+    ]).then(function() {
+      localStorage.setItem('mrr_v3', JSON.stringify(mrrState));
+      localStorage.setItem('fc_v3',  JSON.stringify(fcState));
+      status.textContent = '✓ Synced';
+      status.style.color = '#4ade80';
+      setTimeout(function(){ status.textContent = ''; }, 8000);
+    }).catch(function(e) {
+      status.textContent = '✗ Sync failed';
+      status.style.color = '#f87171';
+      console.error(e);
+    });
+  }
 
   // ── Init ─────────────────────────────────────────────────
   var mrrLoaded = false, fcLoaded = false;
@@ -862,7 +898,7 @@
       if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); } catch(e){} }
       fcLoaded = true; hideLoader();
     }
-  }, 3000);
+  }, 8000);
 
   recalcMrr();
   recalcFc();
