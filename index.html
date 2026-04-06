@@ -378,7 +378,7 @@
         <tbody>
           <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-mrr">₱1,600,000</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-fin">₱130,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-nb-sales"></span></td></tr>
           <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fc-us-mrr">₱370,000</span></td><td><span class="num" contenteditable="false" data-f="fc-us-fin">₱120,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-us-sales"></span></td></tr>
-          <tr class="total-row"><td><span class="row-seg forecast-label">March Forecast</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-mrr"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-fin"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg forecast-label" id="forecast-month-label">March Forecast</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-mrr"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-fin"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-sales"></span></td></tr>
           <tr><td></td><td colspan="2"></td><td><span class="num dim" style="font-size:10px;">Target: <span contenteditable="false" data-f="fc-target">₱2,600,000</span></span></td></tr>
         </tbody>
       </table>
@@ -597,6 +597,13 @@
     el.style.color = pct >= 100 ? '#4ade80' : pct >= 50 ? '#fcd34d' : '#f87171';
     if (b) { b.style.width = Math.min(pct,100)+'%'; b.style.background = pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171'; }
   }
+  function clearAtt(f) {
+    var el = $(f); if (!el) return;
+    var b = $b(f);
+    el.textContent = '—';
+    el.style.color = '#ffffff20';
+    if (b) { b.style.width = '0%'; }
+  }
   function getN(f) { return parseN($(f) ? $(f).textContent : 0); }
   function setN(f, v) { var el=$(f); if(el) el.textContent=fmt(v); }
 
@@ -729,6 +736,13 @@
   // ══════════════════════════════════════════════════════════
   var fcCfg = { fcTarget: 2600000, implTarget: 2600000 };
 
+  function updateForecastLabel() {
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var label = months[new Date().getMonth()] + ' Forecast';
+    var el = document.getElementById('forecast-month-label');
+    if (el) el.textContent = label;
+  }
+
   function recalcFc() {
     var fcNbMrr=getN('fc-nb-mrr'),fcNbFin=getN('fc-nb-fin'),fcUsMrr=getN('fc-us-mrr'),fcUsFin=getN('fc-us-fin');
     setN('fc-nb-sales',fcNbMrr+fcNbFin); setN('fc-us-sales',fcUsMrr+fcUsFin);
@@ -740,12 +754,12 @@
     setN('ac-nb-sales',acNbMrr+acNbEf); setN('ac-us-sales',acUsMrr+acUsEf);
     setN('ac-tot-mrr',acTotMrr); setN('ac-tot-ef',acTotEf); setN('ac-tot-sales',acNbMrr+acNbEf+acUsMrr+acUsEf);
 
-    if(fcNbMrr) setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100);
-    if(fcNbFin) setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);
-    if(fcUsMrr) setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100);
-    if(fcUsFin) setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);
-    if(fcNbMrr+fcUsMrr) setAtt('ac-tot-mrr-att',acTotMrr/(fcNbMrr+fcUsMrr)*100);
-    if(fcNbFin+fcUsFin) setAtt('ac-tot-ef-att',acTotEf/(fcNbFin+fcUsFin)*100);
+    if(fcNbMrr > 0) setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100); else clearAtt('ac-nb-mrr-att');
+    if(fcNbFin > 0) setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);   else clearAtt('ac-nb-ef-att');
+    if(fcUsMrr > 0) setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100); else clearAtt('ac-us-mrr-att');
+    if(fcUsFin > 0) setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);   else clearAtt('ac-us-ef-att');
+    if(fcNbMrr+fcUsMrr > 0) setAtt('ac-tot-mrr-att',acTotMrr/(fcNbMrr+fcUsMrr)*100); else clearAtt('ac-tot-mrr-att');
+    if(fcNbFin+fcUsFin > 0) setAtt('ac-tot-ef-att',acTotEf/(fcNbFin+fcUsFin)*100);   else clearAtt('ac-tot-ef-att');
 
     var implNb=getN('impl-nb');
     if(fcCfg.implTarget){ var ia=$('impl-att'); if(ia) ia.textContent=Math.round(implNb/fcCfg.implTarget*100)+'% attainment'; }
@@ -968,6 +982,7 @@
 
   recalcMrr();
   recalcFc();
+  updateForecastLabel();
   switchTab(localStorage.getItem('active_tab') || 'mrr');
 </script>
 </body>
