@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0060)file:///C:/Users/apanares_sprout/Downloads/index-latest.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sales Dashboard</title>
-<link href="./index_files/css2" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -205,6 +205,7 @@
     z-index: 9999; transition: opacity 0.3s;
   }
   .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loading-overlay { pointer-events: all; }
   .loading-spinner {
     font-family: 'IBM Plex Mono', monospace; font-size: 13px;
     color: #ffffff30; letter-spacing: 0.1em;
@@ -281,7 +282,7 @@
 <body>
 
 <!-- Loading Overlay -->
-<div class="loading-overlay hidden" id="loadingOverlay" style="display: none;">
+<div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner">Loading <span>Sales Dashboard</span>...</div>
 </div>
 
@@ -291,13 +292,13 @@
   <button class="tab active" data-action="switchTab-mrr">📊 MRR Performance</button>
   <button class="tab" data-action="switchTab-fc">📈 Forecast Dashboard</button>
   <div style="margin-left:auto; padding-bottom:6px; display:flex; align-items:center; gap:10px;">
-    <span id="syncStatus" style="font-family:&#39;IBM Plex Mono&#39;,monospace;font-size:10px;color:#ffffff25;letter-spacing:0.06em;"></span>
-    <button data-action="pushToFirebase" style="font-family:&#39;Syne&#39;,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:none;background:#e8b86d15;color:#e8b86d;border:1px solid #e8b86d30;">☁ Sync Now</button>
+    <span id="syncStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#ffffff25;letter-spacing:0.06em;"></span>
+    <button data-action="pushToFirebase" style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:none;background:#e8b86d15;color:#e8b86d;border:1px solid #e8b86d30;">☁ Sync Now</button>
   </div>
 </div>
 
 <!-- MRR Panel -->
-<div id="mrr-panel" class="tab-panel active" style="display: flex; align-items: center; justify-content: center; padding: 32px 24px;">
+<div id="mrr-panel" class="tab-panel active" style="display:flex; align-items:center; justify-content:center; padding:32px 24px;">
   <div class="mrr-card">
     <div class="mrr-card-top">
       <div>
@@ -307,9 +308,9 @@
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="text-align:right;">
           <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#ffffff25;margin-bottom:3px;">Sales Attainment</div>
-          <div id="sales-att-badge" style="font-family:&#39;IBM Plex Mono&#39;,monospace;font-size:22px;font-weight:500;letter-spacing:-0.5px;color:#fbbf24;">83%</div>
+          <div id="sales-att-badge" style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;letter-spacing:-0.5px;color:#fbbf24;">—</div>
         </div>
-        <div class="date-chip" id="mrr-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Apr 10, 2025</div>
+        <div class="date-chip" id="mrr-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Mar 18, 2025</div>
       </div>
     </div>
     <table class="mrr-table">
@@ -321,27 +322,27 @@
       <tbody>
         <tr>
           <td><span class="seg-label">ENT</span></td>
-          <td><span class="money" contenteditable="false" data-f="ent-target">₱2,520,000</span></td>
-          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="ent-actual">₱1,755,405</span><div class="mini-bar"><div class="mini-fill" style="width: 70%; background: rgb(251, 191, 36);"></div></div></div></td>
-          <td><span class="yoy" contenteditable="false" data-f="ent-yoy" style="color: rgb(111, 212, 160);">+72%</span></td>
-          <td><span class="ytd ytd-warn" contenteditable="false" data-f="ent-ytd">70%</span></td>
-          <td><span class="money" contenteditable="false" data-f="ent-pipeline">₱1,532,050</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">FY</div></td>
+          <td><span class="money" contenteditable="false" data-f="ent-target">₱1,620,000</span></td>
+          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="ent-actual">₱857,855</span><div class="mini-bar"><div class="mini-fill" style="width:53%;background:#fbbf24;"></div></div></div></td>
+          <td><span class="yoy" contenteditable="false" data-f="ent-yoy">+15%</span></td>
+          <td><span class="ytd ytd-warn" contenteditable="false" data-f="ent-ytd">53%</span></td>
+          <td><span class="money" contenteditable="false" data-f="ent-pipeline">₱0</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">FY</div></td>
         </tr>
         <tr>
           <td><span class="seg-label">SME</span></td>
-          <td><span class="money" contenteditable="false" data-f="sme-target">₱2,520,000</span></td>
-          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="sme-actual">₱2,786,170</span><div class="mini-bar"><div class="mini-fill" style="width:100%;background:#4ade80;"></div></div></div></td>
-          <td><span class="yoy" contenteditable="false" data-f="sme-yoy" style="color: rgb(111, 212, 160);">+24%</span></td>
-          <td><span class="ytd ytd-over" contenteditable="false" data-f="sme-ytd">111%</span></td>
-          <td><span class="money" contenteditable="false" data-f="sme-pipeline">₱1,584,770</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">CQ/CQ+1</div></td>
+          <td><span class="money" contenteditable="false" data-f="sme-target">₱1,620,000</span></td>
+          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="sme-actual">₱1,975,470</span><div class="mini-bar"><div class="mini-fill" style="width:100%;background:#4ade80;"></div></div></div></td>
+          <td><span class="yoy" contenteditable="false" data-f="sme-yoy">+7%</span></td>
+          <td><span class="ytd ytd-over" contenteditable="false" data-f="sme-ytd">122%</span></td>
+          <td><span class="money" contenteditable="false" data-f="sme-pipeline">₱0</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">CQ/CQ+1</div></td>
         </tr>
         <tr>
           <td><span class="seg-label">U/S</span></td>
-          <td><span class="money" contenteditable="false" data-f="us-target">₱1,720,000</span></td>
-          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="us-actual">₱1,059,247</span><div class="mini-bar"><div class="mini-fill" style="width: 62%; background: rgb(248, 113, 113);"></div></div></div></td>
-          <td><span class="yoy" contenteditable="false" data-f="us-yoy" style="color: rgb(248, 113, 113);">-23%</span></td>
-          <td><span class="ytd ytd-under" contenteditable="false" data-f="us-ytd">62%</span></td>
-          <td><span class="money" contenteditable="false" data-f="us-pipeline">₱1,461,000</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">CQ/CQ+1</div></td>
+          <td><span class="money" contenteditable="false" data-f="us-target">₱1,140,000</span></td>
+          <td><div class="actual-wrap"><span class="money actual" contenteditable="false" data-f="us-actual">₱1,007,097</span><div class="mini-bar"><div class="mini-fill" style="width:88%;background:#f87171;"></div></div></div></td>
+          <td><span class="yoy" contenteditable="false" data-f="us-yoy">+6%</span></td>
+          <td><span class="ytd ytd-under" contenteditable="false" data-f="us-ytd">88%</span></td>
+          <td><span class="money" contenteditable="false" data-f="us-pipeline">₱0</span><div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#ffffff25;margin-top:3px;text-align:right;">CQ/CQ+1</div></td>
         </tr>
       </tbody>
     </table>
@@ -364,7 +365,7 @@
         <div class="fc-page-title">Forecast <span>Dashboard</span></div>
       </div>
       <div class="fc-header-right">
-        <div class="fc-date-chip" id="fc-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Apr 10, 2025</div>
+        <div class="fc-date-chip" id="fc-date-chip" contenteditable="true" style="outline:none;cursor:text;" spellcheck="false">Mar 12, 2025</div>
         <button class="btn btn-config" data-action="openFcConfig">⚙ Config</button>
         <button class="btn btn-edit" id="fcEditBtn" data-action="promptEdit-fc">✎ Edit</button>
       </div>
@@ -376,9 +377,9 @@
       <table>
         <thead><tr><th></th><th>MRR</th><th>FinTech MRR</th><th>Sales</th></tr></thead>
         <tbody>
-          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-mrr">₱1,610,000</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-fin">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="fc-nb-sales">₱1,610,000</span></td></tr>
-          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fc-us-mrr">₱315,000</span></td><td><span class="num" contenteditable="false" data-f="fc-us-fin">₱45,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-us-sales">₱360,000</span></td></tr>
-          <tr class="total-row"><td><span class="row-seg forecast-label" id="forecast-month-label">April Forecast</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-mrr">₱1,925,000</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-fin">₱45,000</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-sales">₱1,970,000</span></td></tr>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-mrr">₱1,600,000</span></td><td><span class="num" contenteditable="false" data-f="fc-nb-fin">₱130,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fc-us-mrr">₱370,000</span></td><td><span class="num" contenteditable="false" data-f="fc-us-fin">₱120,000</span></td><td><span class="num bright" contenteditable="false" data-f="fc-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg forecast-label" id="forecast-month-label">March Forecast</span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-mrr"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-fin"></span></td><td><span class="num gold" contenteditable="false" data-f="fc-tot-sales"></span></td></tr>
           <tr><td></td><td colspan="2"></td><td><span class="num dim" style="font-size:10px;">Target: <span contenteditable="false" data-f="fc-target">₱2,600,000</span></span></td></tr>
         </tbody>
       </table>
@@ -392,27 +393,27 @@
         <tbody>
           <tr>
             <td><span class="row-seg">N/B</span></td>
-            <td><span class="num" contenteditable="false" data-f="ac-nb-mrr">₱94,500</span></td>
-            <td><span class="num" contenteditable="false" data-f="ac-nb-ef">₱8,300</span></td>
-            <td><span class="num bright" contenteditable="false" data-f="ac-nb-sales">₱102,800</span></td>
-            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-nb-mrr-att" style="color: rgb(248, 113, 113);">6%</span><div class="att-bar"><div class="att-fill" data-bar="ac-nb-mrr-att" style="width: 5.86957%; background: rgb(248, 113, 113);"></div></div></div></td>
-            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-nb-ef-att" style="color: rgba(255, 255, 255, 0.125);">—</span><div class="att-bar"><div class="att-fill" data-bar="ac-nb-ef-att" style="width: 0%; background: rgb(248, 113, 113);"></div></div></div></td>
+            <td><span class="num" contenteditable="false" data-f="ac-nb-mrr">₱169,533</span></td>
+            <td><span class="num" contenteditable="false" data-f="ac-nb-ef">₱11,300</span></td>
+            <td><span class="num bright" contenteditable="false" data-f="ac-nb-sales"></span></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-nb-mrr-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-nb-mrr-att"></div></div></div></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-nb-ef-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-nb-ef-att"></div></div></div></td>
           </tr>
           <tr>
             <td><span class="row-seg">U/S</span></td>
-            <td><span class="num" contenteditable="false" data-f="ac-us-mrr">₱0</span></td>
-            <td><span class="num" contenteditable="false" data-f="ac-us-ef">₱0</span></td>
-            <td><span class="num bright" contenteditable="false" data-f="ac-us-sales">₱0</span></td>
-            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-us-mrr-att" style="color: rgb(248, 113, 113);">0%</span><div class="att-bar"><div class="att-fill" data-bar="ac-us-mrr-att" style="width: 0%; background: rgb(248, 113, 113);"></div></div></div></td>
-            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-us-ef-att" style="color: rgb(248, 113, 113);">0%</span><div class="att-bar"><div class="att-fill" data-bar="ac-us-ef-att" style="width: 0%; background: rgb(248, 113, 113);"></div></div></div></td>
+            <td><span class="num" contenteditable="false" data-f="ac-us-mrr">₱45,050</span></td>
+            <td><span class="num" contenteditable="false" data-f="ac-us-ef">₱63,600</span></td>
+            <td><span class="num bright" contenteditable="false" data-f="ac-us-sales"></span></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-us-mrr-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-us-mrr-att"></div></div></div></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-us-ef-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-us-ef-att"></div></div></div></td>
           </tr>
           <tr class="total-row">
             <td><span class="row-seg total">Total</span></td>
-            <td><span class="num green" contenteditable="false" data-f="ac-tot-mrr">₱94,500</span></td>
-            <td><span class="num green" contenteditable="false" data-f="ac-tot-ef">₱8,300</span></td>
-            <td><span class="num green" contenteditable="false" data-f="ac-tot-sales">₱102,800</span></td>
-            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-tot-mrr-att" style="color: rgb(248, 113, 113);">5%</span><div class="att-bar"><div class="att-fill" data-bar="ac-tot-mrr-att" style="width: 4.90909%; background: rgb(248, 113, 113);"></div></div></div></td>
-            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-tot-ef-att" style="color: rgb(248, 113, 113);">18%</span><div class="att-bar"><div class="att-fill" data-bar="ac-tot-ef-att" style="width: 18.4444%; background: rgb(248, 113, 113);"></div></div></div></td>
+            <td><span class="num green" contenteditable="false" data-f="ac-tot-mrr"></span></td>
+            <td><span class="num green" contenteditable="false" data-f="ac-tot-ef"></span></td>
+            <td><span class="num green" contenteditable="false" data-f="ac-tot-sales"></span></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-tot-mrr-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-tot-mrr-att"></div></div></div></td>
+            <td><div class="att-cell"><span class="att-pct" contenteditable="false" data-f="ac-tot-ef-att"></span><div class="att-bar"><div class="att-fill" data-bar="ac-tot-ef-att"></div></div></div></td>
           </tr>
         </tbody>
       </table>
@@ -420,12 +421,12 @@
         <div class="impl-cell">
           <div class="impl-label">Implementation</div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span class="impl-val teal" contenteditable="false" data-f="impl-nb">₱270,000</span>
-            <span style="font-family:&#39;IBM Plex Mono&#39;,monospace;font-size:12px;font-weight:700;color:#fff;" contenteditable="false" data-f="impl-att">10% attainment</span>
+            <span class="impl-val teal" contenteditable="false" data-f="impl-nb">₱393,000</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:#fff;" contenteditable="false" data-f="impl-att"></span>
           </div>
         </div>
-        <div class="impl-cell"><div class="impl-label">OTP · N/B</div><span class="impl-val purple" contenteditable="false" data-f="otp-nb">₱0</span></div>
-        <div class="impl-cell"><div class="impl-label">OTP · U/S</div><span class="impl-val purple" contenteditable="false" data-f="otp-us">₱79,060</span></div>
+        <div class="impl-cell"><div class="impl-label">OTP · N/B</div><span class="impl-val purple" contenteditable="false" data-f="otp-nb">₱120,000</span></div>
+        <div class="impl-cell"><div class="impl-label">OTP · U/S</div><span class="impl-val purple" contenteditable="false" data-f="otp-us">₱6,500</span></div>
       </div>
     </div>
 
@@ -435,9 +436,9 @@
       <table>
         <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th></tr></thead>
         <tbody>
-          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="cm-nb-mrr">₱536,660</span></td><td><span class="num dim" contenteditable="false" data-f="cm-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="cm-nb-sales">₱536,660</span></td></tr>
-          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="cm-us-mrr">₱120,820</span></td><td><span class="num" contenteditable="false" data-f="cm-us-ef">₱6,050</span></td><td><span class="num bright" contenteditable="false" data-f="cm-us-sales">₱126,870</span></td></tr>
-          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-mrr">₱657,480</span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-ef">₱6,050</span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-sales">₱663,530</span></td></tr>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="cm-nb-mrr">₱551,720</span></td><td><span class="num dim" contenteditable="false" data-f="cm-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="cm-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="cm-us-mrr">₱83,750</span></td><td><span class="num" contenteditable="false" data-f="cm-us-ef">₱8,550</span></td><td><span class="num bright" contenteditable="false" data-f="cm-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-mrr"></span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-ef"></span></td><td><span class="num blue" contenteditable="false" data-f="cm-tot-sales"></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -448,9 +449,9 @@
       <table>
         <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th></tr></thead>
         <tbody>
-          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fp-nb-mrr">₱1,160,000</span></td><td><span class="num dim" contenteditable="false" data-f="fp-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="fp-nb-sales">₱1,160,000</span></td></tr>
-          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fp-us-mrr">₱409,280</span></td><td><span class="num" contenteditable="false" data-f="fp-us-ef">₱22,550</span></td><td><span class="num bright" contenteditable="false" data-f="fp-us-sales">₱431,830</span></td></tr>
-          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-mrr">₱1,569,280</span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-ef">₱22,550</span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-sales">₱1,591,830</span></td></tr>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="fp-nb-mrr">₱1,120,000</span></td><td><span class="num dim" contenteditable="false" data-f="fp-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="fp-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="fp-us-mrr">₱186,710</span></td><td><span class="num" contenteditable="false" data-f="fp-us-ef">₱45,300</span></td><td><span class="num bright" contenteditable="false" data-f="fp-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-mrr"></span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-ef"></span></td><td><span class="num purple" contenteditable="false" data-f="fp-tot-sales"></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -461,9 +462,9 @@
       <table>
         <thead><tr><th></th><th>MRR</th><th>E/F MRR</th><th>Sales</th></tr></thead>
         <tbody>
-          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="su-nb-mrr">₱1,850,000</span></td><td><span class="num dim" contenteditable="false" data-f="su-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="su-nb-sales">₱1,850,000</span></td></tr>
-          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="su-us-mrr">₱538,130</span></td><td><span class="num" contenteditable="false" data-f="su-us-ef">₱52,780</span></td><td><span class="num bright" contenteditable="false" data-f="su-us-sales">₱590,910</span></td></tr>
-          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-mrr">₱2,388,130</span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-ef">₱52,780</span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-sales">₱2,440,910</span></td></tr>
+          <tr><td><span class="row-seg">N/B</span></td><td><span class="num" contenteditable="false" data-f="su-nb-mrr">₱1,180,000</span></td><td><span class="num dim" contenteditable="false" data-f="su-nb-ef">₱0</span></td><td><span class="num bright" contenteditable="false" data-f="su-nb-sales"></span></td></tr>
+          <tr><td><span class="row-seg">U/S</span></td><td><span class="num" contenteditable="false" data-f="su-us-mrr">₱779,640</span></td><td><span class="num" contenteditable="false" data-f="su-us-ef">₱176,750</span></td><td><span class="num bright" contenteditable="false" data-f="su-us-sales"></span></td></tr>
+          <tr class="total-row"><td><span class="row-seg total">Total</span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-mrr"></span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-ef"></span></td><td><span class="num amber" contenteditable="false" data-f="su-tot-sales"></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -474,15 +475,15 @@
       <div class="case-grid">
         <div class="case-cell">
           <div class="case-title" style="color:#f87171aa;">⬇ Worst Case · Actual + Commit</div>
-          <div class="case-row-item"><span class="case-seg">MRR</span><span class="case-val" contenteditable="false" data-f="wc-mrr">₱751,980</span></div>
-          <div class="case-row-item"><span class="case-seg">E/F MRR</span><span class="case-val" contenteditable="false" data-f="wc-ef">₱14,350</span></div>
-          <div class="case-row-item case-total"><span class="case-seg" style="color:#ffffff70;font-weight:700;">Sales</span><span class="case-val" style="color:#f87171;font-weight:600;" contenteditable="false" data-f="wc-sales">₱766,330</span></div>
+          <div class="case-row-item"><span class="case-seg">MRR</span><span class="case-val" contenteditable="false" data-f="wc-mrr"></span></div>
+          <div class="case-row-item"><span class="case-seg">E/F MRR</span><span class="case-val" contenteditable="false" data-f="wc-ef"></span></div>
+          <div class="case-row-item case-total"><span class="case-seg" style="color:#ffffff70;font-weight:700;">Sales</span><span class="case-val" style="color:#f87171;font-weight:600;" contenteditable="false" data-f="wc-sales"></span></div>
         </div>
         <div class="case-cell">
           <div class="case-title" style="color:#4ade80aa;">⬆ Best Case · Actual + Commit + Forecast</div>
-          <div class="case-row-item"><span class="case-seg">MRR</span><span class="case-val" contenteditable="false" data-f="bc-mrr">₱2,321,260</span></div>
-          <div class="case-row-item"><span class="case-seg">E/F MRR</span><span class="case-val" contenteditable="false" data-f="bc-ef">₱36,900</span></div>
-          <div class="case-row-item case-total"><span class="case-seg" style="color:#ffffff70;font-weight:700;">Sales</span><span class="case-val" style="color:#4ade80;font-weight:600;" contenteditable="false" data-f="bc-sales">₱2,358,160</span></div>
+          <div class="case-row-item"><span class="case-seg">MRR</span><span class="case-val" contenteditable="false" data-f="bc-mrr"></span></div>
+          <div class="case-row-item"><span class="case-seg">E/F MRR</span><span class="case-val" contenteditable="false" data-f="bc-ef"></span></div>
+          <div class="case-row-item case-total"><span class="case-seg" style="color:#ffffff70;font-weight:700;">Sales</span><span class="case-val" style="color:#4ade80;font-weight:600;" contenteditable="false" data-f="bc-sales"></span></div>
         </div>
       </div>
     </div>
@@ -504,7 +505,7 @@
     <div class="cfg-row"><label class="cfg-label">U/S YTD Target</label><input class="cfg-input" id="cfg-us-target" type="number" value="1140000"></div>
     <div class="modal-actions">
       <button class="btn-cancel" data-action="closeMrrConfig">Cancel</button>
-      <button class="btn-save" data-action="saveMrrConfig">Save &amp; Recalculate</button>
+      <button class="btn-save" data-action="saveMrrConfig">Save & Recalculate</button>
     </div>
   </div>
 </div>
@@ -525,7 +526,7 @@
     <div class="cfg-row"><label class="cfg-label">Impl. Target</label><input class="cfg-input" id="cfg-impl-target" type="number" value="2600000"></div>
     <div class="modal-actions">
       <button class="btn-cancel" data-action="closeFcConfig">Cancel</button>
-      <button class="btn-save" data-action="saveFcConfig">Save &amp; Recalculate</button>
+      <button class="btn-save" data-action="saveFcConfig">Save & Recalculate</button>
     </div>
   </div>
 </div>
@@ -547,8 +548,8 @@
 </div>
 
 <!-- Firebase CDN (compat mode - works with regular scripts) -->
-<script src="./index_files/firebase-app-compat.js.download"></script>
-<script src="./index_files/firebase-database-compat.js.download"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
   // ── Firebase ──────────────────────────────────────────────
@@ -965,7 +966,13 @@
     }
   }
 
-  // Firebase live sync - this is the source of truth
+  // Load localStorage immediately so content shows right away
+  var mrrLocal = localStorage.getItem('mrr_v3');
+  if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); mrrLoaded = true; hideLoader(); } catch(e){} }
+  var fcLocal = localStorage.getItem('fc_v3');
+  if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); fcLoaded = true; hideLoader(); } catch(e){} }
+
+  // Firebase live sync - overrides with latest data
   fbListen('mrr', function(s){
     applyMrrState(s);
     localStorage.setItem('mrr_v3', JSON.stringify(s));
@@ -977,24 +984,27 @@
     if (!fcLoaded) { fcLoaded = true; hideLoader(); }
   });
 
-  // Fallback: if Firebase takes too long (>3s), show localStorage or defaults
+  // Fallback: always hide overlay after 4s no matter what
   setTimeout(function() {
     if (!mrrLoaded) {
       var mrrLocal = localStorage.getItem('mrr_v3');
       if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); } catch(e){} }
-      mrrLoaded = true; hideLoader();
+      mrrLoaded = true;
     }
     if (!fcLoaded) {
       var fcLocal = localStorage.getItem('fc_v3');
       if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); } catch(e){} }
-      fcLoaded = true; hideLoader();
+      fcLoaded = true;
     }
-  }, 8000);
+    // Force hide overlay regardless
+    var overlay = document.getElementById('loadingOverlay');
+    if (overlay) { overlay.classList.add('hidden'); overlay.style.display = 'none'; }
+  }, 4000);
 
   recalcMrr();
   recalcFc();
   updateForecastLabel();
   switchTab(localStorage.getItem('active_tab') || 'mrr');
 </script>
-
-</body></html>
+</body>
+</html>
