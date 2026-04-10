@@ -640,7 +640,9 @@
       var target = parseN($(seg+'-target').textContent);
       if (py) {
         var yoy = Math.round(((actual - py) / py) * 100);
-        $(seg+'-yoy').textContent = (yoy >= 0 ? '+' : '') + yoy + '%';
+        var yoyEl = $(seg+'-yoy');
+        yoyEl.textContent = (yoy >= 0 ? '+' : '') + yoy + '%';
+        yoyEl.style.color = yoy >= 0 ? '#6fd4a0' : '#f87171';
       }
       if (target) {
         var pct = Math.round((actual / target) * 100);
@@ -813,13 +815,22 @@
     return s;
   }
 
+  // Fields that should NEVER be loaded from Firebase - always recalculated
+  var FC_COMPUTED = new Set(['fc-nb-sales','fc-us-sales','fc-tot-mrr','fc-tot-fin','fc-tot-sales',
+    'ac-nb-sales','ac-us-sales','ac-tot-mrr','ac-tot-ef','ac-tot-sales',
+    'ac-nb-mrr-att','ac-nb-ef-att','ac-us-mrr-att','ac-us-ef-att','ac-tot-mrr-att','ac-tot-ef-att',
+    'cm-nb-sales','cm-us-sales','cm-tot-mrr','cm-tot-ef','cm-tot-sales',
+    'fp-nb-sales','fp-us-sales','fp-tot-mrr','fp-tot-ef','fp-tot-sales',
+    'su-nb-sales','su-us-sales','su-tot-mrr','su-tot-ef','su-tot-sales',
+    'wc-mrr','wc-ef','wc-sales','bc-mrr','bc-ef','bc-sales','impl-att']);
+
   function applyFcState(s) {
     if (!s) return;
     Object.keys(s).forEach(function(k) {
       var v = s[k];
       if (k==='__date__') $id('fc-date-chip').textContent=v;
       else if (k==='__cfg__') { try{ Object.assign(fcCfg,JSON.parse(v)); }catch(e){} }
-      else { var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
+      else if (!FC_COMPUTED.has(k)) { var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
     });
     recalcFc();
   }
