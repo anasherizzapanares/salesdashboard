@@ -199,18 +199,11 @@
 
   @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 
-  .loading-overlay {
-    position: fixed; inset: 0; background: #0e0f14;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999; transition: opacity 0.3s;
-  }
-  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-  .loading-overlay { pointer-events: all; }
-  .loading-spinner {
-    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
-    color: #ffffff30; letter-spacing: 0.1em;
-  }
-  .loading-spinner span { color: #e8b86d; }
+  
+  
+  
+  
+  
 
   /* ── Mobile Responsive ───────────────────────────────── */
   @media (max-width: 768px) {
@@ -280,19 +273,14 @@
 </style>
 </head>
 <body>
-
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-spinner">Loading <span>Sales Dashboard</span>...</div>
-</div>
-
 <!-- Tab Bar -->
 <div class="tab-bar">
   <span class="tab-bar-title">Sales Ops</span>
   <button class="tab active" data-action="switchTab-mrr">📊 MRR Performance</button>
   <button class="tab" data-action="switchTab-fc">📈 Forecast Dashboard</button>
+  <button class="tab" data-action="switchTab-deals">🏆 Top Deals</button>
   <div style="margin-left:auto; padding-bottom:6px; display:flex; align-items:center; gap:10px;">
-    <span id="syncStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#ffffff25;letter-spacing:0.06em;"></span>
+    <span id="syncStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#ffffff25;letter-spacing:0.06em;">Loading...</span>
     <button data-action="pushToFirebase" style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:none;background:#e8b86d15;color:#e8b86d;border:1px solid #e8b86d30;">☁ Sync Now</button>
   </div>
 </div>
@@ -531,6 +519,101 @@
   </div>
 </div>
 
+
+<!-- Top Deals Panel -->
+<div id="deals-panel" class="tab-panel" style="display:none; padding:24px;">
+  <div style="max-width:1200px; margin:0 auto;">
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#ffffff25;margin-bottom:4px;">Closing This Month</div>
+        <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.3px;" id="deals-month-title">April 2026</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="text-align:right;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#60a5fa80;margin-bottom:2px;">N/B Total</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;color:#60a5fa;" id="nb-deals-total">₱0</div>
+          <div style="font-size:9px;color:#ffffff25;font-family:'IBM Plex Mono',monospace;" id="nb-deals-count">0 deals</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#a78bfa80;margin-bottom:2px;">U/S Total</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;color:#a78bfa;" id="us-deals-total">₱0</div>
+          <div style="font-size:9px;color:#ffffff25;font-family:'IBM Plex Mono',monospace;" id="us-deals-count">0 deals</div>
+        </div>
+        <button data-action="openDealsConfig" style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid #ffffff12;background:transparent;color:#ffffff35;">⚙ Config</button>
+        <button data-action="promptEdit-deals" id="dealsEditBtn" style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid #e8b86d30;background:#e8b86d15;color:#e8b86d;">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Two columns -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+      <!-- N/B -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-dot" style="background:#60a5fa;"></div>
+          <div class="panel-label"><span style="color:#60a5fa;">New Business</span></div>
+          <div style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;background:#60a5fa18;color:#60a5fa;border:1px solid #60a5fa30;padding:2px 10px;border-radius:20px;" id="nb-badge">5 DEALS</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#ffffff06;">
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 14px;text-align:left;border-bottom:1px solid #ffffff08;">Deal</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:right;border-bottom:1px solid #ffffff08;">HC</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:left;border-bottom:1px solid #ffffff08;">Sales</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:left;border-bottom:1px solid #ffffff08;">Catalyst</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:left;border-bottom:1px solid #ffffff08;">Source</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 14px;text-align:right;border-bottom:1px solid #ffffff08;">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="nb-deals-body"></tbody>
+        </table>
+      </div>
+
+      <!-- U/S -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-dot" style="background:#a78bfa;"></div>
+          <div class="panel-label"><span style="color:#a78bfa;">Upsell</span></div>
+          <div style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;background:#a78bfa18;color:#a78bfa;border:1px solid #a78bfa30;padding:2px 10px;border-radius:20px;" id="us-badge">5 DEALS</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#ffffff06;">
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 14px;text-align:left;border-bottom:1px solid #ffffff08;">Deal</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:right;border-bottom:1px solid #ffffff08;">HC</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:left;border-bottom:1px solid #ffffff08;">Sales</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:left;border-bottom:1px solid #ffffff08;">Catalyst</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 10px;text-align:left;border-bottom:1px solid #ffffff08;">Source</th>
+              <th style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#ffffff25;padding:8px 14px;text-align:right;border-bottom:1px solid #ffffff08;">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="us-deals-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Deals Config Modal -->
+<div class="modal-overlay" id="dealsConfigModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Deals Configuration</div>
+    <div class="modal-sub">Update at the start of each month</div>
+    <div class="cfg-section">Month Label</div>
+    <div class="cfg-row">
+      <label class="cfg-label">Month Title</label>
+      <input class="cfg-input" id="cfg-deals-month" type="text" value="April 2026">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDealsConfig()">Cancel</button>
+      <button class="btn-save" onclick="saveDealsConfig()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Password Modal -->
 <div class="modal-overlay" id="pwModal">
   <div class="modal" style="max-width:340px;">
@@ -548,463 +631,469 @@
 </div>
 
 <!-- Firebase CDN (compat mode - works with regular scripts) -->
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-  // ── Firebase ──────────────────────────────────────────────
-  const firebaseConfig = {
-    apiKey: "AIzaSyByBAMrf7AeRQySiHngqx_fM6JPkAavMoI",
-    authDomain: "sales-dashboard-9ce67.firebaseapp.com",
-    databaseURL: "https://sales-dashboard-9ce67-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "sales-dashboard-9ce67",
-    storageBucket: "sales-dashboard-9ce67.firebasestorage.app",
-    messagingSenderId: "971613588473",
-    appId: "1:971613588473:web:4737e1f80c687d4e1e4b28"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+// ── Firebase ─────────────────────────────────────────────
+var firebaseConfig = {
+  apiKey: "AIzaSyByBAMrf7AeRQySiHngqx_fM6JPkAavMoI",
+  authDomain: "sales-dashboard-9ce67.firebaseapp.com",
+  databaseURL: "https://sales-dashboard-9ce67-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sales-dashboard-9ce67",
+  storageBucket: "sales-dashboard-9ce67.firebasestorage.app",
+  messagingSenderId: "971613588473",
+  appId: "1:971613588473:web:4737e1f80c687d4e1e4b28"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
 
-  function fbSave(key, data) {
-    db.ref(key).set(data).then(function(){
-      var status = document.getElementById('syncStatus');
-      if (status) { status.textContent = '✓ Saved'; status.style.color = '#4ade80'; setTimeout(function(){ status.textContent=''; }, 2000); }
-    }).catch(function(e){ console.error('Save error:', e); });
-  }
-  function fbListen(key, cb) {
-    // .once() guarantees a single fetch even on flaky connections
-    db.ref(key).once('value').then(function(snap) {
-      if (snap.val()) cb(snap.val());
-    }).catch(function(e){ console.error('Firebase fetch error:', e); });
-    // .on() keeps it live for subsequent updates
-    db.ref(key).on('value', function(snap) { if (snap.val()) cb(snap.val()); });
-  }
+function fbSave(key, data) {
+  db.ref(key).set(data).then(function(){
+    var st = document.getElementById('syncStatus');
+    if (st) { st.textContent = '✓ Saved'; st.style.color = '#4ade8060'; setTimeout(function(){ st.textContent = '✓ Live'; }, 2000); }
+  }).catch(function(e){ console.error('Save error:', e); });
+}
+function fbListen(key, cb) {
+  db.ref(key).once('value').then(function(s){ if (s.val()) cb(s.val()); });
+  db.ref(key).on('value', function(s){ if (s.val()) cb(s.val()); });
+}
 
-  // ── Helpers ───────────────────────────────────────────────
-  function $(f) { return document.querySelector('[data-f="' + f + '"]'); }
-  function $b(f) { return document.querySelector('[data-bar="' + f + '"]'); }
-  function $id(id) { return document.getElementById(id); }
+// ── Helpers ───────────────────────────────────────────────
+function $(f) { return document.querySelector('[data-f="' + f + '"]'); }
+function $b(f) { return document.querySelector('[data-bar="' + f + '"]'); }
+function $id(id) { return document.getElementById(id); }
 
-  function parseN(str) {
-    return parseFloat(String(str || 0).replace(/[₱,%]/g,'').replace(/,/g,'')) || 0;
-  }
-  function fmt(n) {
-    return n === 0 ? '₱0' : '₱' + Math.round(n).toLocaleString('en-PH');
-  }
-  function setAtt(f, pct) {
-    var el = $(f); if (!el) return;
-    var b = $b(f);
-    el.textContent = Math.round(pct) + '%';
-    el.style.color = pct >= 100 ? '#4ade80' : pct >= 50 ? '#fcd34d' : '#f87171';
-    if (b) { b.style.width = Math.min(pct,100)+'%'; b.style.background = pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171'; }
-  }
-  function clearAtt(f) {
-    var el = $(f); if (!el) return;
-    var b = $b(f);
-    el.textContent = '—';
-    el.style.color = '#ffffff20';
-    if (b) { b.style.width = '0%'; }
-  }
-  function getN(f) { return parseN($(f) ? $(f).textContent : 0); }
-  function setN(f, v) { var el=$(f); if(el) el.textContent=fmt(v); }
+function parseN(str) { return parseFloat(String(str||0).replace(/[₱,%]/g,'').replace(/,/g,''))||0; }
+function fmt(n) { return n===0?'₱0':'₱'+Math.round(n).toLocaleString('en-PH'); }
+function setAtt(f, pct) {
+  var el=$(f); if(!el) return;
+  var b=$b(f);
+  el.textContent = Math.round(pct)+'%';
+  el.style.color = pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171';
+  if(b){ b.style.width=Math.min(pct,100)+'%'; b.style.background=pct>=100?'#4ade80':pct>=50?'#fcd34d':'#f87171'; }
+}
+function clearAtt(f) {
+  var el=$(f); if(!el) return;
+  var b=$b(f);
+  el.textContent='—'; el.style.color='#ffffff20';
+  if(b) b.style.width='0%';
+}
+function getN(f) { return parseN($(f)?$(f).textContent:0); }
+function setN(f,v) { var el=$(f); if(el) el.textContent=fmt(v); }
 
-  // ── Tab switching ─────────────────────────────────────────
-  function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-    ['mrr-panel','fc-panel'].forEach(function(id){
-      var p = $id(id);
-      p.classList.remove('active');
-      p.style.display = 'none';
-    });
-    if (tab === 'mrr') {
-      document.querySelectorAll('.tab')[0].classList.add('active');
-      $id('mrr-panel').classList.add('active');
-      $id('mrr-panel').style.display = 'flex';
-    } else {
-      document.querySelectorAll('.tab')[1].classList.add('active');
-      $id('fc-panel').classList.add('active');
-      $id('fc-panel').style.display = 'block';
-      recalcFc();
-    }
-    localStorage.setItem('active_tab', tab);
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // MRR TABLE
-  // ══════════════════════════════════════════════════════════
-  var mrrPriorYear = { ent: 745404, sme: 1838270, us: 953675 };
-
-  function recalcMrr() {
-    ['ent','sme','us'].forEach(function(seg) {
-      var py = mrrPriorYear[seg];
-      var actual = parseN($(seg+'-actual').textContent);
-      var target = parseN($(seg+'-target').textContent);
-      if (py) {
-        var yoy = Math.round(((actual - py) / py) * 100);
-        var yoyEl = $(seg+'-yoy');
-        yoyEl.textContent = (yoy >= 0 ? '+' : '') + yoy + '%';
-        yoyEl.style.color = yoy >= 0 ? '#6fd4a0' : '#f87171';
-      }
-      if (target) {
-        var pct = Math.round((actual / target) * 100);
-        var ytdEl = $(seg+'-ytd');
-        var barEl = ytdEl.closest('tr').querySelector('.mini-fill');
-        ytdEl.textContent = pct + '%';
-        ytdEl.className = 'ytd ' + (pct>=100?'ytd-over':pct>=70?'ytd-warn':'ytd-under');
-        if (barEl) { barEl.style.width=Math.min(pct,100)+'%'; barEl.style.background=pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171'; }
-      }
-    });
-    var tActual = ['ent','sme','us'].reduce(function(s,seg){ return s+parseN($(seg+'-actual').textContent); },0);
-    var tTarget = ['ent','sme','us'].reduce(function(s,seg){ return s+parseN($(seg+'-target').textContent); },0);
-    var badge = $id('sales-att-badge');
-    if (badge && tTarget) {
-      var pct = Math.round((tActual/tTarget)*100);
-      badge.textContent = pct + '%';
-      badge.style.color = pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171';
-    }
-  }
-
-  var MRR_EDITABLE = ['ent-target','ent-actual','sme-target','sme-actual','us-target','us-actual','ent-pipeline','sme-pipeline','us-pipeline'];
-
-  function setMrrEditable(on) {
-    MRR_EDITABLE.forEach(function(f) {
-      var el = $id('mrr-panel').querySelector('[data-f="'+f+'"]');
-      if (el) {
-        el.contentEditable = on ? 'true' : 'false';
-        el.style.cursor = on ? 'text' : '';
-        el.style.borderBottom = on ? '1px dashed #e8b86d60' : '';
-      }
-    });
-  }
-
-  function getMrrState() {
-    var s = { __prior__: JSON.stringify(mrrPriorYear), __date__: $id('mrr-date-chip').textContent.trim() };
-    $id('mrr-panel').querySelectorAll('[data-f]').forEach(function(el){
-      if(el.textContent.trim()) s[el.dataset.f] = el.textContent.trim();
-    });
-    return s;
-  }
-
-  function applyMrrState(s) {
-    if (!s) return;
-    Object.keys(s).forEach(function(k) {
-      var v = s[k];
-      if (k==='__date__') $id('mrr-date-chip').textContent = v;
-      else if (k==='__prior__') { try{ Object.assign(mrrPriorYear,JSON.parse(v)); }catch(e){} }
-      else { var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
-    });
-    recalcMrr();
-  }
-
-  function saveMrr() {
-    var s = getMrrState();
-    localStorage.setItem('mrr_v3', JSON.stringify(s));
-    fbSave('mrr', s);
-  }
-
-  function openMrrConfig() {
-    $id('cfg-ent-py').value = mrrPriorYear.ent;
-    $id('cfg-sme-py').value = mrrPriorYear.sme;
-    $id('cfg-us-py').value  = mrrPriorYear.us;
-    $id('cfg-ent-target').value = parseN($('ent-target').textContent);
-    $id('cfg-sme-target').value = parseN($('sme-target').textContent);
-    $id('cfg-us-target').value  = parseN($('us-target').textContent);
-    $id('mrrConfigModal').classList.add('open');
-  }
-  function closeMrrConfig() { $id('mrrConfigModal').classList.remove('open'); }
-  function saveMrrConfig() {
-    mrrPriorYear.ent = parseFloat($id('cfg-ent-py').value)||mrrPriorYear.ent;
-    mrrPriorYear.sme = parseFloat($id('cfg-sme-py').value)||mrrPriorYear.sme;
-    mrrPriorYear.us  = parseFloat($id('cfg-us-py').value) ||mrrPriorYear.us;
-    $('ent-target').textContent = fmt($id('cfg-ent-target').value);
-    $('sme-target').textContent = fmt($id('cfg-sme-target').value);
-    $('us-target').textContent  = fmt($id('cfg-us-target').value);
-    recalcMrr(); saveMrr(); closeMrrConfig();
-  }
-  $id('mrrConfigModal').addEventListener('click', function(e){ if(e.target===$id('mrrConfigModal')) closeMrrConfig(); });
-
-  var mrrEditing = false;
-  function toggleMrrEdit() {
-    mrrEditing = !mrrEditing;
-    setMrrEditable(mrrEditing);
-    var btn = $id('mrrEditBtn');
-    btn.textContent = mrrEditing ? '✓ Done' : '✎ Edit';
-    btn.classList.toggle('done', mrrEditing);
-    if (!mrrEditing) { recalcMrr(); saveMrr(); }
-  }
-  $id('mrr-date-chip').addEventListener('blur', saveMrr);
-
-  // ══════════════════════════════════════════════════════════
-  // FORECAST DASHBOARD
-  // ══════════════════════════════════════════════════════════
-  var fcCfg = { fcTarget: 2600000, implTarget: 2600000 };
-
-  function updateForecastLabel() {
-    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var label = months[new Date().getMonth()] + ' Forecast';
-    var el = document.getElementById('forecast-month-label');
-    if (el) el.textContent = label;
-  }
-
-  function recalcFc() {
-    var fcNbMrr=getN('fc-nb-mrr'),fcNbFin=getN('fc-nb-fin'),fcUsMrr=getN('fc-us-mrr'),fcUsFin=getN('fc-us-fin');
-    setN('fc-nb-sales',fcNbMrr+fcNbFin); setN('fc-us-sales',fcUsMrr+fcUsFin);
-    setN('fc-tot-mrr',fcNbMrr+fcUsMrr); setN('fc-tot-fin',fcNbFin+fcUsFin);
-    setN('fc-tot-sales',fcNbMrr+fcNbFin+fcUsMrr+fcUsFin);
-
-    var acNbMrr=getN('ac-nb-mrr'),acNbEf=getN('ac-nb-ef'),acUsMrr=getN('ac-us-mrr'),acUsEf=getN('ac-us-ef');
-    var acTotMrr=acNbMrr+acUsMrr, acTotEf=acNbEf+acUsEf;
-    setN('ac-nb-sales',acNbMrr+acNbEf); setN('ac-us-sales',acUsMrr+acUsEf);
-    setN('ac-tot-mrr',acTotMrr); setN('ac-tot-ef',acTotEf); setN('ac-tot-sales',acNbMrr+acNbEf+acUsMrr+acUsEf);
-
-    if(fcNbMrr > 0) setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100); else clearAtt('ac-nb-mrr-att');
-    if(fcNbFin > 0) setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);   else clearAtt('ac-nb-ef-att');
-    if(fcUsMrr > 0) setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100); else clearAtt('ac-us-mrr-att');
-    if(fcUsFin > 0) setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);   else clearAtt('ac-us-ef-att');
-    if(fcNbMrr+fcUsMrr > 0) setAtt('ac-tot-mrr-att',acTotMrr/(fcNbMrr+fcUsMrr)*100); else clearAtt('ac-tot-mrr-att');
-    if(fcNbFin+fcUsFin > 0) setAtt('ac-tot-ef-att',acTotEf/(fcNbFin+fcUsFin)*100);   else clearAtt('ac-tot-ef-att');
-
-    var implNb=getN('impl-nb');
-    if(fcCfg.implTarget){ var ia=$('impl-att'); if(ia) ia.textContent=Math.round(implNb/fcCfg.implTarget*100)+'% attainment'; }
-
-    var cmNbMrr=getN('cm-nb-mrr'),cmNbEf=getN('cm-nb-ef'),cmUsMrr=getN('cm-us-mrr'),cmUsEf=getN('cm-us-ef');
-    setN('cm-nb-sales',cmNbMrr+cmNbEf); setN('cm-us-sales',cmUsMrr+cmUsEf);
-    setN('cm-tot-mrr',cmNbMrr+cmUsMrr); setN('cm-tot-ef',cmNbEf+cmUsEf); setN('cm-tot-sales',cmNbMrr+cmNbEf+cmUsMrr+cmUsEf);
-
-    var fpNbMrr=getN('fp-nb-mrr'),fpNbEf=getN('fp-nb-ef'),fpUsMrr=getN('fp-us-mrr'),fpUsEf=getN('fp-us-ef');
-    setN('fp-nb-sales',fpNbMrr+fpNbEf); setN('fp-us-sales',fpUsMrr+fpUsEf);
-    setN('fp-tot-mrr',fpNbMrr+fpUsMrr); setN('fp-tot-ef',fpNbEf+fpUsEf); setN('fp-tot-sales',fpNbMrr+fpNbEf+fpUsMrr+fpUsEf);
-
-    var suNbMrr=getN('su-nb-mrr'),suNbEf=getN('su-nb-ef'),suUsMrr=getN('su-us-mrr'),suUsEf=getN('su-us-ef');
-    setN('su-nb-sales',suNbMrr+suNbEf); setN('su-us-sales',suUsMrr+suUsEf);
-    setN('su-tot-mrr',suNbMrr+suUsMrr); setN('su-tot-ef',suNbEf+suUsEf); setN('su-tot-sales',suNbMrr+suNbEf+suUsMrr+suUsEf);
-
-    var acTotSales=acNbMrr+acNbEf+acUsMrr+acUsEf;
-    var cmTotSales=cmNbMrr+cmNbEf+cmUsMrr+cmUsEf;
-    var fpTotSales=fpNbMrr+fpNbEf+fpUsMrr+fpUsEf;
-    setN('wc-mrr',acTotMrr+cmNbMrr+cmUsMrr);
-    setN('wc-ef',acTotEf+cmNbEf+cmUsEf);
-    setN('wc-sales',acTotSales+cmTotSales);
-    setN('bc-mrr',acTotMrr+cmNbMrr+cmUsMrr+fpNbMrr+fpUsMrr);
-    setN('bc-ef',acTotEf+cmNbEf+cmUsEf+fpNbEf+fpUsEf);
-    setN('bc-sales',acTotSales+cmTotSales+fpTotSales);
-  }
-
-  var FC_EDITABLE = ['fc-nb-mrr','fc-nb-fin','fc-us-mrr','fc-us-fin',
-    'ac-nb-mrr','ac-nb-ef','ac-us-mrr','ac-us-ef',
-    'impl-nb','otp-nb','otp-us',
-    'cm-nb-mrr','cm-nb-ef','cm-us-mrr','cm-us-ef',
-    'fp-nb-mrr','fp-nb-ef','fp-us-mrr','fp-us-ef',
-    'su-nb-mrr','su-nb-ef','su-us-mrr','su-us-ef'];
-
-  function setFcEditable(on) {
-    FC_EDITABLE.forEach(function(f) {
-      var el = $id('fc-panel').querySelector('[data-f="'+f+'"]');
-      if (el) {
-        el.contentEditable = on ? 'true' : 'false';
-        el.style.cursor = on ? 'text' : '';
-        el.style.borderBottom = on ? '1px dashed #e8b86d60' : '';
-      }
-    });
-  }
-
-  function getFcState() {
-    var s = { __cfg__: JSON.stringify(fcCfg), __date__: $id('fc-date-chip').textContent.trim() };
-    $id('fc-panel').querySelectorAll('[data-f]').forEach(function(el){
-      if(el.textContent.trim()) s[el.dataset.f]=el.textContent.trim();
-    });
-    return s;
-  }
-
-  // Fields that should NEVER be loaded from Firebase - always recalculated
-  var FC_COMPUTED = new Set(['fc-nb-sales','fc-us-sales','fc-tot-mrr','fc-tot-fin','fc-tot-sales',
-    'ac-nb-sales','ac-us-sales','ac-tot-mrr','ac-tot-ef','ac-tot-sales',
-    'ac-nb-mrr-att','ac-nb-ef-att','ac-us-mrr-att','ac-us-ef-att','ac-tot-mrr-att','ac-tot-ef-att',
-    'cm-nb-sales','cm-us-sales','cm-tot-mrr','cm-tot-ef','cm-tot-sales',
-    'fp-nb-sales','fp-us-sales','fp-tot-mrr','fp-tot-ef','fp-tot-sales',
-    'su-nb-sales','su-us-sales','su-tot-mrr','su-tot-ef','su-tot-sales',
-    'wc-mrr','wc-ef','wc-sales','bc-mrr','bc-ef','bc-sales','impl-att']);
-
-  function applyFcState(s) {
-    if (!s) return;
-    Object.keys(s).forEach(function(k) {
-      var v = s[k];
-      if (k==='__date__') $id('fc-date-chip').textContent=v;
-      else if (k==='__cfg__') { try{ Object.assign(fcCfg,JSON.parse(v)); }catch(e){} }
-      else if (!FC_COMPUTED.has(k)) { var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
-    });
+// ── Tab switching ─────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  ['mrr-panel','fc-panel','deals-panel'].forEach(function(id){
+    var p = $id(id); if(!p) return;
+    p.classList.remove('active'); p.style.display='none';
+  });
+  if (tab==='mrr') {
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    $id('mrr-panel').classList.add('active'); $id('mrr-panel').style.display='flex';
+  } else if (tab==='fc') {
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    $id('fc-panel').classList.add('active'); $id('fc-panel').style.display='block';
     recalcFc();
+  } else if (tab==='deals') {
+    document.querySelectorAll('.tab')[2].classList.add('active');
+    $id('deals-panel').classList.add('active'); $id('deals-panel').style.display='block';
+    renderDeals();
   }
+  localStorage.setItem('active_tab', tab);
+}
 
-  function saveFc() {
-    var s = getFcState();
-    localStorage.setItem('fc_v3', JSON.stringify(s));
-    fbSave('forecast', s);
-  }
+// ══════════════════════════════════════════════════════════
+// MRR TABLE
+// ══════════════════════════════════════════════════════════
+var mrrPriorYear = { ent:745404, sme:1838270, us:953675 };
 
-  function openFcConfig() {
-    $id('cfg-fc-nb-mrr').value = parseN($('fc-nb-mrr').textContent);
-    $id('cfg-fc-nb-fin').value = parseN($('fc-nb-fin').textContent);
-    $id('cfg-fc-us-mrr').value = parseN($('fc-us-mrr').textContent);
-    $id('cfg-fc-us-fin').value = parseN($('fc-us-fin').textContent);
-    $id('cfg-fc-target').value = fcCfg.fcTarget;
-    $id('cfg-impl-target').value = fcCfg.implTarget;
-    $id('fcConfigModal').classList.add('open');
-  }
-  function closeFcConfig() { $id('fcConfigModal').classList.remove('open'); }
-  function saveFcConfig() {
-    $('fc-nb-mrr').textContent=fmt(parseFloat($id('cfg-fc-nb-mrr').value)||0);
-    $('fc-nb-fin').textContent=fmt(parseFloat($id('cfg-fc-nb-fin').value)||0);
-    $('fc-us-mrr').textContent=fmt(parseFloat($id('cfg-fc-us-mrr').value)||0);
-    $('fc-us-fin').textContent=fmt(parseFloat($id('cfg-fc-us-fin').value)||0);
-    fcCfg.fcTarget=parseFloat($id('cfg-fc-target').value)||fcCfg.fcTarget;
-    fcCfg.implTarget=parseFloat($id('cfg-impl-target').value)||fcCfg.implTarget;
-    $('fc-target').textContent=fmt(fcCfg.fcTarget);
-    recalcFc(); saveFc(); closeFcConfig();
-  }
-  $id('fcConfigModal').addEventListener('click', function(e){ if(e.target===$id('fcConfigModal')) closeFcConfig(); });
-  $id('fc-date-chip').addEventListener('blur', saveFc);
-
-  var fcEditing = false;
-  function toggleFcEdit() {
-    fcEditing = !fcEditing;
-    setFcEditable(fcEditing);
-    var btn = $id('fcEditBtn');
-    btn.textContent = fcEditing ? '✓ Done' : '✎ Edit';
-    btn.classList.toggle('done', fcEditing);
-    if (!fcEditing) { recalcFc(); saveFc(); }
-  }
-
-  // ── Password ──────────────────────────────────────────────
-  var CORRECT_PW = 'sprout2026';
-  var pendingEditTab = null;
-
-  function promptEdit(tab) {
-    if (tab==='mrr' && mrrEditing) { toggleMrrEdit(); return; }
-    if (tab==='fc'  && fcEditing)  { toggleFcEdit();  return; }
-    pendingEditTab = tab;
-    $id('pwInput').value = '';
-    $id('pwError').style.display = 'none';
-    $id('pwModal').classList.add('open');
-    setTimeout(function(){ $id('pwInput').focus(); }, 100);
-  }
-  function submitPw() {
-    if ($id('pwInput').value === CORRECT_PW) {
-      var tab = pendingEditTab;
-      $id('pwModal').classList.remove('open');
-      pendingEditTab = null;
-      setTimeout(function(){ if(tab==='mrr') toggleMrrEdit(); else toggleFcEdit(); }, 80);
-    } else {
-      $id('pwError').style.display = 'block';
-      $id('pwInput').value = '';
-      $id('pwInput').focus();
+function recalcMrr() {
+  ['ent','sme','us'].forEach(function(seg) {
+    var py = mrrPriorYear[seg];
+    var actual = parseN($(seg+'-actual').textContent);
+    var target = parseN($(seg+'-target').textContent);
+    if (py) {
+      var yoy = Math.round(((actual-py)/py)*100);
+      var yoyEl = $(seg+'-yoy');
+      yoyEl.textContent = (yoy>=0?'+':'')+yoy+'%';
+      yoyEl.style.color = yoy>=0?'#6fd4a0':'#f87171';
     }
-  }
-  function closePwModal() { $id('pwModal').classList.remove('open'); pendingEditTab=null; }
-  $id('pwModal').addEventListener('click', function(e){ if(e.target===$id('pwModal')) closePwModal(); });
-  $id('pwInput').addEventListener('keydown', function(e){ if(e.key==='Enter') submitPw(); });
-
-  // ── Blur / Enter handlers ─────────────────────────────────
-  document.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
-  document.addEventListener('blur', function(e) {
-    if (!e.target.dataset || !e.target.dataset.f) return;
-    if ($id('mrr-panel').contains(e.target)) { recalcMrr(); saveMrr(); }
-    else if ($id('fc-panel').contains(e.target)) { recalcFc(); saveFc(); }
-  }, true);
-
-  // ── Event delegation ─────────────────────────────────────
-  document.addEventListener('click', function(e) {
-    var el = e.target.closest('[data-action]');
-    if (!el) return;
-    var a = el.dataset.action;
-    if      (a === 'switchTab-mrr')  switchTab('mrr');
-    else if (a === 'switchTab-fc')   switchTab('fc');
-    else if (a === 'openMrrConfig')  openMrrConfig();
-    else if (a === 'closeMrrConfig') closeMrrConfig();
-    else if (a === 'saveMrrConfig')  saveMrrConfig();
-    else if (a === 'promptEdit-mrr') promptEdit('mrr');
-    else if (a === 'openFcConfig')   openFcConfig();
-    else if (a === 'closeFcConfig')  closeFcConfig();
-    else if (a === 'saveFcConfig')   saveFcConfig();
-    else if (a === 'promptEdit-fc')  promptEdit('fc');
-    else if (a === 'submitPw')       submitPw();
-    else if (a === 'closePwModal')   closePwModal();
-    else if (a === 'pushToFirebase') pushToFirebase();
+    if (target) {
+      var pct = Math.round((actual/target)*100);
+      var ytdEl = $(seg+'-ytd');
+      var barEl = ytdEl.closest('tr').querySelector('.mini-fill');
+      ytdEl.textContent = pct+'%';
+      ytdEl.className = 'ytd '+(pct>=100?'ytd-over':pct>=70?'ytd-warn':'ytd-under');
+      if(barEl){ barEl.style.width=Math.min(pct,100)+'%'; barEl.style.background=pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171'; }
+    }
   });
+  var tA = ['ent','sme','us'].reduce(function(s,seg){ return s+parseN($(seg+'-actual').textContent); },0);
+  var tT = ['ent','sme','us'].reduce(function(s,seg){ return s+parseN($(seg+'-target').textContent); },0);
+  var badge = $id('sales-att-badge');
+  if(badge&&tT){ var p=Math.round((tA/tT)*100); badge.textContent=p+'%'; badge.style.color=p>=100?'#4ade80':p>=70?'#fbbf24':'#f87171'; }
+}
 
-  // ── Manual sync ──────────────────────────────────────────
-  function pushToFirebase() {
-    var status = document.getElementById('syncStatus');
-    status.textContent = 'Syncing...';
-    status.style.color = '#fbbf24';
-    var mrrState = getMrrState();
-    var fcState  = getFcState();
-    Promise.all([
-      db.ref('mrr').set(mrrState),
-      db.ref('forecast').set(fcState)
-    ]).then(function() {
-      localStorage.setItem('mrr_v3', JSON.stringify(mrrState));
-      localStorage.setItem('fc_v3',  JSON.stringify(fcState));
-      status.textContent = '✓ Synced';
-      status.style.color = '#4ade80';
-      setTimeout(function(){ status.textContent = ''; }, 8000);
-    }).catch(function(e) {
-      status.textContent = '✗ Sync failed';
-      status.style.color = '#f87171';
-      console.error(e);
-    });
-  }
+var MRR_EDITABLE = ['ent-target','ent-actual','sme-target','sme-actual','us-target','us-actual','ent-pipeline','sme-pipeline','us-pipeline'];
 
-  // ── Init ─────────────────────────────────────────────────
-  var mrrLoaded = false, fcLoaded = false;
-
-  function hideLoader() {
-    if (mrrLoaded && fcLoaded) {
-      var overlay = document.getElementById('loadingOverlay');
-      overlay.classList.add('hidden');
-      setTimeout(function(){ overlay.style.display='none'; }, 350);
-    }
-  }
-
-  // Load localStorage immediately so content shows right away
-  var mrrLocal = localStorage.getItem('mrr_v3');
-  if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); mrrLoaded = true; hideLoader(); } catch(e){} }
-  var fcLocal = localStorage.getItem('fc_v3');
-  if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); fcLoaded = true; hideLoader(); } catch(e){} }
-
-  // Firebase live sync - overrides with latest data
-  fbListen('mrr', function(s){
-    applyMrrState(s);
-    localStorage.setItem('mrr_v3', JSON.stringify(s));
-    if (!mrrLoaded) { mrrLoaded = true; hideLoader(); }
+function setMrrEditable(on) {
+  MRR_EDITABLE.forEach(function(f){
+    var el=$id('mrr-panel').querySelector('[data-f="'+f+'"]');
+    if(el){ el.contentEditable=on?'true':'false'; el.style.cursor=on?'text':''; el.style.borderBottom=on?'1px dashed #e8b86d60':''; }
   });
-  fbListen('forecast', function(s){
-    applyFcState(s);
-    localStorage.setItem('fc_v3', JSON.stringify(s));
-    if (!fcLoaded) { fcLoaded = true; hideLoader(); }
+}
+
+function getMrrState() {
+  var s={__prior__:JSON.stringify(mrrPriorYear),__date__:$id('mrr-date-chip').textContent.trim()};
+  $id('mrr-panel').querySelectorAll('[data-f]').forEach(function(el){ if(el.textContent.trim()) s[el.dataset.f]=el.textContent.trim(); });
+  return s;
+}
+
+var MRR_SKIP = new Set(['ent-yoy','sme-yoy','us-yoy','ent-ytd','sme-ytd','us-ytd']);
+function applyMrrState(s) {
+  if(!s) return;
+  Object.keys(s).forEach(function(k){
+    var v=s[k];
+    if(k==='__date__') $id('mrr-date-chip').textContent=v;
+    else if(k==='__prior__'){ try{Object.assign(mrrPriorYear,JSON.parse(v));}catch(e){} }
+    else if(!MRR_SKIP.has(k)){ var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
   });
-
-  // Fallback: always hide overlay after 4s no matter what
-  setTimeout(function() {
-    if (!mrrLoaded) {
-      var mrrLocal = localStorage.getItem('mrr_v3');
-      if (mrrLocal) { try { applyMrrState(JSON.parse(mrrLocal)); } catch(e){} }
-      mrrLoaded = true;
-    }
-    if (!fcLoaded) {
-      var fcLocal = localStorage.getItem('fc_v3');
-      if (fcLocal) { try { applyFcState(JSON.parse(fcLocal)); } catch(e){} }
-      fcLoaded = true;
-    }
-    // Force hide overlay regardless
-    var overlay = document.getElementById('loadingOverlay');
-    if (overlay) { overlay.classList.add('hidden'); overlay.style.display = 'none'; }
-  }, 4000);
-
   recalcMrr();
+}
+
+function saveMrr() { var s=getMrrState(); localStorage.setItem('mrr_v3',JSON.stringify(s)); fbSave('mrr',s); }
+
+function openMrrConfig() {
+  $id('cfg-ent-py').value=mrrPriorYear.ent; $id('cfg-sme-py').value=mrrPriorYear.sme; $id('cfg-us-py').value=mrrPriorYear.us;
+  $id('cfg-ent-target').value=parseN($('ent-target').textContent);
+  $id('cfg-sme-target').value=parseN($('sme-target').textContent);
+  $id('cfg-us-target').value=parseN($('us-target').textContent);
+  $id('mrrConfigModal').classList.add('open');
+}
+function closeMrrConfig() { $id('mrrConfigModal').classList.remove('open'); }
+function saveMrrConfig() {
+  mrrPriorYear.ent=parseFloat($id('cfg-ent-py').value)||mrrPriorYear.ent;
+  mrrPriorYear.sme=parseFloat($id('cfg-sme-py').value)||mrrPriorYear.sme;
+  mrrPriorYear.us=parseFloat($id('cfg-us-py').value)||mrrPriorYear.us;
+  $('ent-target').textContent=fmt($id('cfg-ent-target').value);
+  $('sme-target').textContent=fmt($id('cfg-sme-target').value);
+  $('us-target').textContent=fmt($id('cfg-us-target').value);
+  recalcMrr(); saveMrr(); closeMrrConfig();
+}
+$id('mrrConfigModal').addEventListener('click',function(e){ if(e.target===$id('mrrConfigModal')) closeMrrConfig(); });
+$id('mrr-date-chip').addEventListener('blur', saveMrr);
+
+var mrrEditing = false;
+function toggleMrrEdit() {
+  mrrEditing=!mrrEditing;
+  setMrrEditable(mrrEditing);
+  var btn=$id('mrrEditBtn');
+  btn.textContent=mrrEditing?'✓ Done':'✎ Edit';
+  btn.classList.toggle('done',mrrEditing);
+  if(!mrrEditing){ recalcMrr(); saveMrr(); }
+}
+
+// ══════════════════════════════════════════════════════════
+// FORECAST DASHBOARD
+// ══════════════════════════════════════════════════════════
+var fcCfg = { fcTarget:2600000, implTarget:2600000 };
+
+function recalcFc() {
+  var fcNbMrr=getN('fc-nb-mrr'),fcNbFin=getN('fc-nb-fin'),fcUsMrr=getN('fc-us-mrr'),fcUsFin=getN('fc-us-fin');
+  setN('fc-nb-sales',fcNbMrr+fcNbFin); setN('fc-us-sales',fcUsMrr+fcUsFin);
+  setN('fc-tot-mrr',fcNbMrr+fcUsMrr); setN('fc-tot-fin',fcNbFin+fcUsFin); setN('fc-tot-sales',fcNbMrr+fcNbFin+fcUsMrr+fcUsFin);
+  var acNbMrr=getN('ac-nb-mrr'),acNbEf=getN('ac-nb-ef'),acUsMrr=getN('ac-us-mrr'),acUsEf=getN('ac-us-ef');
+  var acTotMrr=acNbMrr+acUsMrr, acTotEf=acNbEf+acUsEf;
+  setN('ac-nb-sales',acNbMrr+acNbEf); setN('ac-us-sales',acUsMrr+acUsEf);
+  setN('ac-tot-mrr',acTotMrr); setN('ac-tot-ef',acTotEf); setN('ac-tot-sales',acNbMrr+acNbEf+acUsMrr+acUsEf);
+  if(fcNbMrr>0) setAtt('ac-nb-mrr-att',acNbMrr/fcNbMrr*100); else clearAtt('ac-nb-mrr-att');
+  if(fcNbFin>0) setAtt('ac-nb-ef-att',acNbEf/fcNbFin*100);   else clearAtt('ac-nb-ef-att');
+  if(fcUsMrr>0) setAtt('ac-us-mrr-att',acUsMrr/fcUsMrr*100); else clearAtt('ac-us-mrr-att');
+  if(fcUsFin>0) setAtt('ac-us-ef-att',acUsEf/fcUsFin*100);   else clearAtt('ac-us-ef-att');
+  if(fcNbMrr+fcUsMrr>0) setAtt('ac-tot-mrr-att',acTotMrr/(fcNbMrr+fcUsMrr)*100); else clearAtt('ac-tot-mrr-att');
+  if(fcNbFin+fcUsFin>0) setAtt('ac-tot-ef-att',acTotEf/(fcNbFin+fcUsFin)*100);   else clearAtt('ac-tot-ef-att');
+  var implNb=getN('impl-nb');
+  if(fcCfg.implTarget){ var ia=$('impl-att'); if(ia) ia.textContent=Math.round(implNb/fcCfg.implTarget*100)+'% attainment'; }
+  var cmNbMrr=getN('cm-nb-mrr'),cmNbEf=getN('cm-nb-ef'),cmUsMrr=getN('cm-us-mrr'),cmUsEf=getN('cm-us-ef');
+  setN('cm-nb-sales',cmNbMrr+cmNbEf); setN('cm-us-sales',cmUsMrr+cmUsEf);
+  setN('cm-tot-mrr',cmNbMrr+cmUsMrr); setN('cm-tot-ef',cmNbEf+cmUsEf); setN('cm-tot-sales',cmNbMrr+cmNbEf+cmUsMrr+cmUsEf);
+  var fpNbMrr=getN('fp-nb-mrr'),fpNbEf=getN('fp-nb-ef'),fpUsMrr=getN('fp-us-mrr'),fpUsEf=getN('fp-us-ef');
+  setN('fp-nb-sales',fpNbMrr+fpNbEf); setN('fp-us-sales',fpUsMrr+fpUsEf);
+  setN('fp-tot-mrr',fpNbMrr+fpUsMrr); setN('fp-tot-ef',fpNbEf+fpUsEf); setN('fp-tot-sales',fpNbMrr+fpNbEf+fpUsMrr+fpUsEf);
+  var suNbMrr=getN('su-nb-mrr'),suNbEf=getN('su-nb-ef'),suUsMrr=getN('su-us-mrr'),suUsEf=getN('su-us-ef');
+  setN('su-nb-sales',suNbMrr+suNbEf); setN('su-us-sales',suUsMrr+suUsEf);
+  setN('su-tot-mrr',suNbMrr+suUsMrr); setN('su-tot-ef',suNbEf+suUsEf); setN('su-tot-sales',suNbMrr+suNbEf+suUsMrr+suUsEf);
+  var acTotSales=acNbMrr+acNbEf+acUsMrr+acUsEf;
+  var cmTotSales=cmNbMrr+cmNbEf+cmUsMrr+cmUsEf;
+  var fpTotSales=fpNbMrr+fpNbEf+fpUsMrr+fpUsEf;
+  setN('wc-mrr',acTotMrr+cmNbMrr+cmUsMrr); setN('wc-ef',acTotEf+cmNbEf+cmUsEf); setN('wc-sales',acTotSales+cmTotSales);
+  setN('bc-mrr',acTotMrr+cmNbMrr+cmUsMrr+fpNbMrr+fpUsMrr);
+  setN('bc-ef',acTotEf+cmNbEf+cmUsEf+fpNbEf+fpUsEf);
+  setN('bc-sales',acTotSales+cmTotSales+fpTotSales);
+}
+
+var FC_EDITABLE = ['fc-nb-mrr','fc-nb-fin','fc-us-mrr','fc-us-fin','ac-nb-mrr','ac-nb-ef','ac-us-mrr','ac-us-ef',
+  'impl-nb','otp-nb','otp-us','cm-nb-mrr','cm-nb-ef','cm-us-mrr','cm-us-ef',
+  'fp-nb-mrr','fp-nb-ef','fp-us-mrr','fp-us-ef','su-nb-mrr','su-nb-ef','su-us-mrr','su-us-ef'];
+
+var FC_COMPUTED = new Set(['fc-nb-sales','fc-us-sales','fc-tot-mrr','fc-tot-fin','fc-tot-sales',
+  'ac-nb-sales','ac-us-sales','ac-tot-mrr','ac-tot-ef','ac-tot-sales',
+  'ac-nb-mrr-att','ac-nb-ef-att','ac-us-mrr-att','ac-us-ef-att','ac-tot-mrr-att','ac-tot-ef-att',
+  'cm-nb-sales','cm-us-sales','cm-tot-mrr','cm-tot-ef','cm-tot-sales',
+  'fp-nb-sales','fp-us-sales','fp-tot-mrr','fp-tot-ef','fp-tot-sales',
+  'su-nb-sales','su-us-sales','su-tot-mrr','su-tot-ef','su-tot-sales',
+  'wc-mrr','wc-ef','wc-sales','bc-mrr','bc-ef','bc-sales','impl-att']);
+
+function setFcEditable(on) {
+  FC_EDITABLE.forEach(function(f){
+    var el=$id('fc-panel').querySelector('[data-f="'+f+'"]');
+    if(el){ el.contentEditable=on?'true':'false'; el.style.cursor=on?'text':''; el.style.borderBottom=on?'1px dashed #e8b86d60':''; }
+  });
+}
+
+function getFcState() {
+  var s={__cfg__:JSON.stringify(fcCfg),__date__:$id('fc-date-chip').textContent.trim()};
+  $id('fc-panel').querySelectorAll('[data-f]').forEach(function(el){ if(el.textContent.trim()) s[el.dataset.f]=el.textContent.trim(); });
+  return s;
+}
+function applyFcState(s) {
+  if(!s) return;
+  Object.keys(s).forEach(function(k){
+    var v=s[k];
+    if(k==='__date__') $id('fc-date-chip').textContent=v;
+    else if(k==='__cfg__'){ try{Object.assign(fcCfg,JSON.parse(v));}catch(e){} }
+    else if(!FC_COMPUTED.has(k)){ var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
+  });
   recalcFc();
-  updateForecastLabel();
-  switchTab(localStorage.getItem('active_tab') || 'mrr');
+}
+function saveFc() { var s=getFcState(); localStorage.setItem('fc_v3',JSON.stringify(s)); fbSave('forecast',s); }
+
+function openFcConfig() {
+  $id('cfg-fc-nb-mrr').value=parseN($('fc-nb-mrr').textContent); $id('cfg-fc-nb-fin').value=parseN($('fc-nb-fin').textContent);
+  $id('cfg-fc-us-mrr').value=parseN($('fc-us-mrr').textContent); $id('cfg-fc-us-fin').value=parseN($('fc-us-fin').textContent);
+  $id('cfg-fc-target').value=fcCfg.fcTarget; $id('cfg-impl-target').value=fcCfg.implTarget;
+  $id('fcConfigModal').classList.add('open');
+}
+function closeFcConfig() { $id('fcConfigModal').classList.remove('open'); }
+function saveFcConfig() {
+  $('fc-nb-mrr').textContent=fmt(parseFloat($id('cfg-fc-nb-mrr').value)||0);
+  $('fc-nb-fin').textContent=fmt(parseFloat($id('cfg-fc-nb-fin').value)||0);
+  $('fc-us-mrr').textContent=fmt(parseFloat($id('cfg-fc-us-mrr').value)||0);
+  $('fc-us-fin').textContent=fmt(parseFloat($id('cfg-fc-us-fin').value)||0);
+  fcCfg.fcTarget=parseFloat($id('cfg-fc-target').value)||fcCfg.fcTarget;
+  fcCfg.implTarget=parseFloat($id('cfg-impl-target').value)||fcCfg.implTarget;
+  $('fc-target').textContent=fmt(fcCfg.fcTarget);
+  recalcFc(); saveFc(); closeFcConfig();
+}
+$id('fcConfigModal').addEventListener('click',function(e){ if(e.target===$id('fcConfigModal')) closeFcConfig(); });
+$id('fc-date-chip').addEventListener('blur', saveFc);
+
+var fcEditing = false;
+function toggleFcEdit() {
+  fcEditing=!fcEditing;
+  setFcEditable(fcEditing);
+  var btn=$id('fcEditBtn');
+  btn.textContent=fcEditing?'✓ Done':'✎ Edit';
+  btn.classList.toggle('done',fcEditing);
+  if(!fcEditing){ recalcFc(); saveFc(); }
+}
+
+// ══════════════════════════════════════════════════════════
+// TOP DEALS
+// ══════════════════════════════════════════════════════════
+var SOURCE_COLORS = {
+  'LDU':       {bg:'#f59e0b18',color:'#fcd34d',border:'#f59e0b30'},
+  'Marketing': {bg:'#60a5fa18',color:'#93c5fd',border:'#60a5fa30'},
+  'Sales':     {bg:'#4ade8018',color:'#4ade80',border:'#22c55e30'},
+  'Upsell':    {bg:'#a78bfa18',color:'#c4b5fd',border:'#a78bfa30'},
+  'CSM':       {bg:'#2dd4bf18',color:'#5eead4',border:'#2dd4bf30'},
+  'In-House':  {bg:'#f8717118',color:'#fca5a5',border:'#f8717130'}
+};
+var SOURCES = ['LDU','Marketing','Sales','Upsell','CSM','In-House'];
+var dealsEditing = false;
+var dealsData = {
+  month: 'April 2026',
+  nb: [{deal:'',hc:'',owner:'',catalyst:'',source:'LDU',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'LDU',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'LDU',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'LDU',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'LDU',amount:''}],
+  us: [{deal:'',hc:'',owner:'',catalyst:'',source:'Upsell',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'Upsell',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'Upsell',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'Upsell',amount:''},{deal:'',hc:'',owner:'',catalyst:'',source:'Upsell',amount:''}]
+};
+
+function srcTag(src) {
+  var c=SOURCE_COLORS[src]||{bg:'#ffffff10',color:'#ffffff60',border:'#ffffff20'};
+  return '<span style="font-size:9px;font-weight:700;letter-spacing:0.06em;padding:2px 8px;border-radius:4px;background:'+c.bg+';color:'+c.color+';border:1px solid '+c.border+';">'+src+'</span>';
+}
+
+function renderDeals() {
+  ['nb','us'].forEach(function(type) {
+    var tbody=$id(type+'-deals-body'); if(!tbody) return;
+    tbody.innerHTML='';
+    var total=0, count=0;
+    dealsData[type].forEach(function(d,i){
+      var amt=parseFloat(String(d.amount||'').replace(/[₱,]/g,''))||0;
+      if(amt){ total+=amt; count++; }
+      var tr=document.createElement('tr');
+      tr.style.borderBottom='1px solid #ffffff07';
+      if(dealsEditing){
+        tr.innerHTML=
+          '<td style="padding:10px 14px;"><span contenteditable="true" data-deals="'+type+'-'+i+'-deal" style="outline:none;border-bottom:1px dashed #e8b86d50;cursor:text;min-width:80px;display:inline-block;font-size:12px;font-weight:600;color:#fff;">'+(d.deal||'')+'</span></td>'+
+          '<td style="padding:10px 10px;text-align:right;"><span contenteditable="true" data-deals="'+type+'-'+i+'-hc" style="outline:none;border-bottom:1px dashed #e8b86d50;cursor:text;min-width:20px;display:inline-block;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#ffffff60;">'+(d.hc||'')+'</span></td>'+
+          '<td style="padding:10px 10px;"><span contenteditable="true" data-deals="'+type+'-'+i+'-owner" style="outline:none;border-bottom:1px dashed #e8b86d50;cursor:text;min-width:60px;display:inline-block;font-size:11px;color:#ffffff60;">'+(d.owner||'')+'</span></td>'+
+          '<td style="padding:10px 10px;"><span contenteditable="true" data-deals="'+type+'-'+i+'-catalyst" style="outline:none;border-bottom:1px dashed #e8b86d50;cursor:text;min-width:60px;display:inline-block;font-size:11px;color:#ffffff60;">'+(d.catalyst||'')+'</span></td>'+
+          '<td style="padding:10px 10px;"><select data-deals-sel="'+type+'-'+i+'" style="background:#1a1a2e;border:1px solid #ffffff20;border-radius:4px;color:#fff;font-size:10px;padding:2px 4px;">'+
+            SOURCES.map(function(s){return '<option value="'+s+'"'+(s===d.source?' selected':'')+'>'+s+'</option>';}).join('')+
+          '</select></td>'+
+          '<td style="padding:10px 14px;text-align:right;"><span contenteditable="true" data-deals="'+type+'-'+i+'-amount" style="outline:none;border-bottom:1px dashed #e8b86d50;cursor:text;min-width:50px;display:inline-block;font-family:\'IBM Plex Mono\',monospace;font-size:12px;font-weight:500;color:#fff;">'+(d.amount||'')+'</span></td>';
+      } else {
+        tr.innerHTML=
+          '<td style="padding:10px 14px;font-size:12px;font-weight:600;color:#fff;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(d.deal||'—')+'</td>'+
+          '<td style="padding:10px 10px;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#ffffff60;text-align:right;">'+(d.hc||'—')+'</td>'+
+          '<td style="padding:10px 10px;font-size:11px;color:#ffffff60;white-space:nowrap;">'+(d.owner||'—')+'</td>'+
+          '<td style="padding:10px 10px;font-size:11px;color:#ffffff60;white-space:nowrap;">'+(d.catalyst||'—')+'</td>'+
+          '<td style="padding:10px 10px;">'+srcTag(d.source||'LDU')+'</td>'+
+          '<td style="padding:10px 14px;font-family:\'IBM Plex Mono\',monospace;font-size:12px;font-weight:500;color:#fff;text-align:right;">'+(amt?'₱'+amt.toLocaleString('en-PH'):'—')+'</td>';
+      }
+      tbody.appendChild(tr);
+    });
+    var el=$id(type+'-deals-total'); if(el) el.textContent=total?'₱'+total.toLocaleString('en-PH'):'₱0';
+    var el2=$id(type+'-deals-count'); if(el2) el2.textContent=count+' deal'+(count!==1?'s':'');
+    var el3=$id(type+'-badge'); if(el3) el3.textContent=dealsData[type].length+' DEALS';
+    if(dealsEditing){
+      tbody.querySelectorAll('[data-deals-sel]').forEach(function(sel){
+        sel.addEventListener('change',function(){
+          var parts=this.dataset.dealsSel.split('-');
+          dealsData[parts[0]][parseInt(parts[1])].source=this.value;
+          saveDeals();
+        });
+      });
+    }
+  });
+  var mt=$id('deals-month-title'); if(mt) mt.textContent=dealsData.month;
+}
+
+function collectDealsEdits() {
+  document.querySelectorAll('[data-deals]').forEach(function(el){
+    var p=el.dataset.deals.split('-');
+    dealsData[p[0]][parseInt(p[1])][p[2]]=el.textContent.trim();
+  });
+}
+
+function updateDealsTotals() {
+  ['nb','us'].forEach(function(type){
+    var total=0, count=0;
+    dealsData[type].forEach(function(d){
+      var amt=parseFloat(String(d.amount||'').replace(/[₱,]/g,''))||0;
+      if(amt){ total+=amt; count++; }
+    });
+    var el=$id(type+'-deals-total'); if(el) el.textContent=total?'₱'+total.toLocaleString('en-PH'):'₱0';
+    var el2=$id(type+'-deals-count'); if(el2) el2.textContent=count+' deal'+(count!==1?'s':'');
+  });
+}
+
+function toggleDealsEdit() {
+  if(dealsEditing){ collectDealsEdits(); dealsEditing=false; renderDeals(); saveDeals(); }
+  else { dealsEditing=true; renderDeals(); }
+  var btn=$id('dealsEditBtn'); if(!btn) return;
+  btn.textContent=dealsEditing?'✓ Done':'✎ Edit';
+  btn.style.color=dealsEditing?'#4ade80':'#e8b86d';
+  btn.style.background=dealsEditing?'#4ade8015':'#e8b86d15';
+  btn.style.borderColor=dealsEditing?'#4ade8030':'#e8b86d30';
+}
+
+function openDealsConfig() { $id('cfg-deals-month').value=dealsData.month; $id('dealsConfigModal').classList.add('open'); }
+function closeDealsConfig() { $id('dealsConfigModal').classList.remove('open'); }
+function saveDealsConfig() { dealsData.month=$id('cfg-deals-month').value||dealsData.month; renderDeals(); saveDeals(); closeDealsConfig(); }
+$id('dealsConfigModal').addEventListener('click',function(e){ if(e.target===$id('dealsConfigModal')) closeDealsConfig(); });
+
+function saveDeals() { localStorage.setItem('deals_v1',JSON.stringify(dealsData)); fbSave('deals',dealsData); }
+function applyDealsState(s) { if(!s) return; if(s.month) dealsData.month=s.month; if(s.nb) dealsData.nb=s.nb; if(s.us) dealsData.us=s.us; renderDeals(); }
+
+// ══════════════════════════════════════════════════════════
+// PASSWORD
+// ══════════════════════════════════════════════════════════
+var CORRECT_PW = 'sprout2026';
+var pendingEditTab = null;
+
+function promptEdit(tab) {
+  if(tab==='mrr'&&mrrEditing){ toggleMrrEdit(); return; }
+  if(tab==='fc'&&fcEditing){ toggleFcEdit(); return; }
+  if(tab==='deals'&&dealsEditing){ toggleDealsEdit(); return; }
+  pendingEditTab=tab;
+  $id('pwInput').value=''; $id('pwError').style.display='none';
+  $id('pwModal').classList.add('open');
+  setTimeout(function(){ $id('pwInput').focus(); },100);
+}
+function submitPw() {
+  if($id('pwInput').value===CORRECT_PW){
+    var tab=pendingEditTab;
+    $id('pwModal').classList.remove('open'); pendingEditTab=null;
+    setTimeout(function(){ if(tab==='mrr') toggleMrrEdit(); else if(tab==='fc') toggleFcEdit(); else if(tab==='deals') toggleDealsEdit(); },80);
+  } else {
+    $id('pwError').style.display='block'; $id('pwInput').value=''; $id('pwInput').focus();
+  }
+}
+function closePwModal() { $id('pwModal').classList.remove('open'); pendingEditTab=null; }
+$id('pwModal').addEventListener('click',function(e){ if(e.target===$id('pwModal')) closePwModal(); });
+$id('pwInput').addEventListener('keydown',function(e){ if(e.key==='Enter') submitPw(); });
+
+// ── Manual sync ───────────────────────────────────────────
+function pushToFirebase() {
+  var st=$id('syncStatus'); if(st){ st.textContent='Syncing...'; st.style.color='#fbbf24'; }
+  Promise.all([db.ref('mrr').set(getMrrState()), db.ref('forecast').set(getFcState()), db.ref('deals').set(dealsData)])
+  .then(function(){ if(st){ st.textContent='✓ Synced'; st.style.color='#4ade80'; setTimeout(function(){ st.textContent='✓ Live'; },3000); } })
+  .catch(function(e){ if(st){ st.textContent='✗ Failed'; st.style.color='#f87171'; } console.error(e); });
+}
+
+// ── Event delegation ──────────────────────────────────────
+document.addEventListener('click', function(e) {
+  var el=e.target.closest('[data-action]'); if(!el) return;
+  var a=el.dataset.action;
+  if      (a==='switchTab-mrr')   switchTab('mrr');
+  else if (a==='switchTab-fc')    switchTab('fc');
+  else if (a==='switchTab-deals') switchTab('deals');
+  else if (a==='pushToFirebase')  pushToFirebase();
+  else if (a==='openMrrConfig')   openMrrConfig();
+  else if (a==='closeMrrConfig')  closeMrrConfig();
+  else if (a==='saveMrrConfig')   saveMrrConfig();
+  else if (a==='promptEdit-mrr')  promptEdit('mrr');
+  else if (a==='openFcConfig')    openFcConfig();
+  else if (a==='closeFcConfig')   closeFcConfig();
+  else if (a==='saveFcConfig')    saveFcConfig();
+  else if (a==='promptEdit-fc')   promptEdit('fc');
+  else if (a==='promptEdit-deals') promptEdit('deals');
+  else if (a==='openDealsConfig')  openDealsConfig();
+  else if (a==='closeDealsConfig') closeDealsConfig();
+  else if (a==='saveDealsConfig')  saveDealsConfig();
+  else if (a==='submitPw')        submitPw();
+  else if (a==='closePwModal')    closePwModal();
+});
+
+// ── Blur handler ──────────────────────────────────────────
+document.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
+document.addEventListener('blur', function(e) {
+  if(!e.target.dataset||!e.target.dataset.f) return;
+  if($id('mrr-panel').contains(e.target)){ recalcMrr(); saveMrr(); }
+  else if($id('fc-panel').contains(e.target)){ recalcFc(); saveFc(); }
+}, true);
+
+document.addEventListener('blur', function(e) {
+  if(!e.target.dataset||!e.target.dataset.deals) return;
+  if($id('deals-panel') && $id('deals-panel').contains(e.target)){
+    collectDealsEdits();
+    updateDealsTotals();
+  }
+}, true);
+
+// ── Init ─────────────────────────────────────────────────
+var mrrLocal=localStorage.getItem('mrr_v3'); if(mrrLocal){ try{applyMrrState(JSON.parse(mrrLocal));}catch(e){} }
+var fcLocal=localStorage.getItem('fc_v3');   if(fcLocal){  try{applyFcState(JSON.parse(fcLocal));}catch(e){} }
+var dlLocal=localStorage.getItem('deals_v1');if(dlLocal){  try{applyDealsState(JSON.parse(dlLocal));}catch(e){} }
+
+recalcMrr(); recalcFc();
+switchTab(localStorage.getItem('active_tab')||'mrr');
+
+fbListen('mrr',      function(s){ applyMrrState(s);   localStorage.setItem('mrr_v3',JSON.stringify(s));    var st=$id('syncStatus'); if(st&&st.textContent==='Loading...'){ st.textContent='✓ Live'; st.style.color='#4ade8060'; } });
+fbListen('forecast', function(s){ applyFcState(s);    localStorage.setItem('fc_v3',JSON.stringify(s)); });
+fbListen('deals',    function(s){ applyDealsState(s); localStorage.setItem('deals_v1',JSON.stringify(s)); });
 </script>
 </body>
 </html>
