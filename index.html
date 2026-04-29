@@ -503,6 +503,8 @@
   <div class="modal">
     <div class="modal-title">Forecast Configuration</div>
     <div class="modal-sub">Update at the start of each month</div>
+    <div class="cfg-section">Month Label</div>
+    <div class="cfg-row"><label class="cfg-label">Forecast Month</label><input class="cfg-input" id="cfg-fc-month" type="text" placeholder="e.g. April Forecast"></div>
     <div class="cfg-section">Forecast · N/B</div>
     <div class="cfg-row"><label class="cfg-label">N/B MRR</label><input class="cfg-input" id="cfg-fc-nb-mrr" type="number" value="1600000"></div>
     <div class="cfg-row"><label class="cfg-label">N/B FinTech MRR</label><input class="cfg-input" id="cfg-fc-nb-fin" type="number" value="130000"></div>
@@ -862,7 +864,7 @@ function applyFcState(s) {
   Object.keys(s).forEach(function(k){
     var v=s[k];
     if(k==='__date__') $id('fc-date-chip').textContent=v;
-    else if(k==='__cfg__'){ try{Object.assign(fcCfg,JSON.parse(v));}catch(e){} }
+    else if(k==='__cfg__'){ try{Object.assign(fcCfg,JSON.parse(v)); if(fcCfg.fcMonth){ var lbl=$id('forecast-month-label'); if(lbl) lbl.textContent=fcCfg.fcMonth; } }catch(e){} }
     else if(!FC_COMPUTED.has(k)){ var el=document.querySelector('[data-f="'+k+'"]'); if(el) el.textContent=v; }
   });
   recalcFc();
@@ -873,6 +875,7 @@ function openFcConfig() {
   $id('cfg-fc-nb-mrr').value=parseN($('fc-nb-mrr').textContent); $id('cfg-fc-nb-fin').value=parseN($('fc-nb-fin').textContent);
   $id('cfg-fc-us-mrr').value=parseN($('fc-us-mrr').textContent); $id('cfg-fc-us-fin').value=parseN($('fc-us-fin').textContent);
   $id('cfg-fc-target').value=fcCfg.fcTarget; $id('cfg-impl-target').value=fcCfg.implTarget;
+  var lbl=$id('forecast-month-label'); $id('cfg-fc-month').value=lbl?lbl.textContent:'';
   $id('fcConfigModal').classList.add('open');
 }
 function closeFcConfig() { $id('fcConfigModal').classList.remove('open'); }
@@ -884,6 +887,9 @@ function saveFcConfig() {
   fcCfg.fcTarget=parseFloat($id('cfg-fc-target').value)||fcCfg.fcTarget;
   fcCfg.implTarget=parseFloat($id('cfg-impl-target').value)||fcCfg.implTarget;
   $('fc-target').textContent=fmt(fcCfg.fcTarget);
+  var monthVal=$id('cfg-fc-month').value.trim();
+  var lbl=$id('forecast-month-label'); if(lbl&&monthVal) lbl.textContent=monthVal;
+  if(monthVal) fcCfg.fcMonth=monthVal;
   recalcFc(); saveFc(); closeFcConfig();
 }
 $id('fcConfigModal').addEventListener('click',function(e){ if(e.target===$id('fcConfigModal')) closeFcConfig(); });
